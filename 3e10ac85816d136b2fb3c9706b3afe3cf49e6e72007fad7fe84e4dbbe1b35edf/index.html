@@ -174,9 +174,9 @@ details[open] summary::before{content:'▾ '}
       <button class="btn-s" style="margin-top:8px;width:100%;padding:10px" onclick="loadFromSheets()">🔄 スプレッドシートから再読み込み</button>
       <p style="font-size:10px;color:var(--text-dim);margin-top:6px">新しい曲はスプレッドシートに追加すると反映されます</p>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-        <h3>タイムスタンプ共有</h3>
-        <p style="font-size:10px;color:var(--text-dim);margin-top:4px;margin-bottom:8px">タイミング設定後にコピーして、Claudeに貼り付けると家族のアプリにも反映できます</p>
-        <button class="btn-s pri" style="width:100%;padding:10px" onclick="exportTimestamps()">📋 タイムスタンプをコピー</button>
+        <h3>データ共有</h3>
+        <p style="font-size:10px;color:var(--text-dim);margin-top:4px;margin-bottom:8px">歌詞・タイムスタンプの編集内容をコピーして、Claudeに貼り付けるとスプレッドシートに反映→家族にも共有されます</p>
+        <button class="btn-s pri" style="width:100%;padding:10px" onclick="exportAllData()">📋 この曲のデータをコピー</button>
         <div id="exportStatus" style="font-size:11px;color:var(--accent);margin-top:6px"></div>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
@@ -523,17 +523,12 @@ function renderSongList(){
   document.getElementById('songList').innerHTML=songs.map((s,i)=>`<div class="song-item ${i===curSong?'current':''}" onclick="selSong(${i})"><span class="s-name">${s.title} — ${s.artist}</span></div>`).join('');
   checkMP3()}
 function selSong(i){openSong(i)}
-function exportTimestamps(){
+function exportAllData(){
   const song=songs[curSong];
   if(!song){document.getElementById('exportStatus').textContent='曲を選択してください';return}
-  const data={songId:song.id,title:song.title,lines:[]};
-  let hasAny=false;
-  song.lines.forEach((line,i)=>{
-    const ld={line:i+1,time:line.time,translation:line.translation||'',words:[]};
-    line.words.forEach(w=>{if(w.time!==null){ld.words.push({text:w.text,time:w.time});hasAny=true}});
-    if(line.time!==null)hasAny=true;
-    data.lines.push(ld)});
-  if(!hasAny){document.getElementById('exportStatus').textContent='タイムスタンプが設定されていません';return}
+  const data={songId:song.id,title:song.title,artist:song.artist,lines:song.lines.map((line,i)=>({
+    line:i+1,time:line.time,translation:line.translation||'',
+    words:line.words.map(w=>({text:w.text,reading:w.reading||'',meaning:w.meaning||'',pos:w.pos||'noun',time:w.time}))}))};
   const txt=JSON.stringify(data);
   navigator.clipboard.writeText(txt).then(()=>{
     document.getElementById('exportStatus').textContent='✅ コピーしました！Claudeに貼り付けてね';
