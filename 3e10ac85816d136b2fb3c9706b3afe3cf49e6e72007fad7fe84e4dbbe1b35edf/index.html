@@ -263,9 +263,11 @@ async function loadFromSheets(){
         const lineMap={};
         lRows.forEach(r=>{
           const ln=parseInt(r.line)||0;if(!ln)return;
-          if(!lineMap[ln])lineMap[ln]={words:[]};
-          lineMap[ln].words.push({text:r.text||'',reading:r.reading||'',meaning:r.meaning||'',pos:r.pos||'noun',time:null})});
-        songs[i].lines=Object.keys(lineMap).sort((a,b)=>a-b).map(k=>({time:null,translation:'',words:lineMap[k].words}));
+          if(!lineMap[ln])lineMap[ln]={words:[],lineTime:null};
+          const lt=parseFloat(r.line_time);if(!isNaN(lt))lineMap[ln].lineTime=lt;
+          const wt=parseFloat(r.word_time);
+          lineMap[ln].words.push({text:r.text||'',reading:r.reading||'',meaning:r.meaning||'',pos:r.pos||'noun',time:isNaN(wt)?null:wt})});
+        songs[i].lines=Object.keys(lineMap).sort((a,b)=>a-b).map(k=>({time:lineMap[k].lineTime,translation:'',words:lineMap[k].words}));
       }catch(e){console.warn('Failed to load song:',songs[i].id,e)}
     }
     // Merge saved timing data from localStorage
@@ -342,11 +344,13 @@ function renderLyrics(){
     return `<div class="lyric-line" id="line-${i}"><div class="words-row">${wh}</div>${l.translation?`<div class="line-translation">${l.translation}</div>`:''}</div>`}).join('')}
 
 // Sync
-audio.addEventListener('timeupdate',()=>{
-  if(!audio.duration)return;
-  document.getElementById('progressFill').style.width=((audio.currentTime/audio.duration)*100)+'%';
-  document.getElementById('currentTime').textContent=fmt(audio.currentTime,true);
-  syncHL(audio.currentTime)});
+function animLoop(){
+  if(audio.src&&audio.duration){
+    document.getElementById('progressFill').style.width=((audio.currentTime/audio.duration)*100)+'%';
+    document.getElementById('currentTime').textContent=fmt(audio.currentTime,true);
+    syncHL(audio.currentTime)}
+  requestAnimationFrame(animLoop)}
+requestAnimationFrame(animLoop);
 audio.addEventListener('loadedmetadata',()=>document.getElementById('totalTime').textContent=fmt(audio.duration,true));
 
 function syncHL(t){
@@ -528,13 +532,15 @@ function renderWT(c){
     h+=`</div>`});
   c.innerHTML=h}
 
-function tapLT(i){if(!audio.src)return alert('先にMP3を読み込んでね');songs[curSong].lines[i].time=audio.currentTime;save();renderTimingContent()}
+let tapTimer=null;
+function deferRender(){clearTimeout(tapTimer);tapTimer=setTimeout(()=>{save();renderTimingContent()},300)}
+function tapLT(i){if(!audio.src)return alert('先にMP3を読み込んでね');songs[curSong].lines[i].time=audio.currentTime;deferRender()}
 function setLT(i,v){songs[curSong].lines[i].time=parseT(v);save();renderTimingContent()}
 function clrLT(i){songs[curSong].lines[i].time=null;save();renderTimingContent()}
 function clrAllLT(){songs[curSong].lines.forEach(l=>l.time=null);save();renderTimingContent();renderLyrics()}
 let wtOpenLines=new Set();
 function toggleWTLine(i){if(wtOpenLines.has(i))wtOpenLines.delete(i);else wtOpenLines.add(i);renderTimingContent()}
-function tapWT(i,j){if(!audio.src)return alert('先にMP3を読み込んでね');songs[curSong].lines[i].words[j].time=audio.currentTime;save();renderTimingContent()}
+function tapWT(i,j){if(!audio.src)return alert('先にMP3を読み込んでね');songs[curSong].lines[i].words[j].time=audio.currentTime;deferRender()}
 function setWT(i,j,v){songs[curSong].lines[i].words[j].time=parseT(v);save();renderTimingContent()}
 function clrWT(i,j){songs[curSong].lines[i].words[j].time=null;save();renderTimingContent()}
 function skip(sec){if(audio.src)audio.currentTime=Math.max(0,Math.min(audio.duration||0,audio.currentTime+sec))}
