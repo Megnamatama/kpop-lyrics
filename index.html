@@ -182,31 +182,46 @@ const W=()=>({text:'',reading:'',meaning:'',pos:'noun',time:null});
 
 // Google Sheets config
 const SHEET_ID='1nlVHLi43foVRPKqaDyYR-BJfgoySKuBlBYTO08vK6Ss';
-function sheetURL(name){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(name)}`}
+function csvURL(name){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`}
 
 let songs=[];
 let curSong=0,curLine=-1,curWord=-1,timingMode='line',editLineIdx=null,editWordIdx=null;
 let audio=document.getElementById('audioPlayer'),speeds=[.5,.75,1,1.25,1.5],speedIdx=2;
 
-// Parse Google Sheets JSON response
-function parseGSheet(text){
-  const j=JSON.parse(text.substring(text.indexOf('(')+1,text.lastIndexOf(')')));
-  const cols=j.table.cols.map(c=>c.label||'');
-  return j.table.rows.map(r=>{const o={};cols.forEach((c,i)=>{o[c]=r.c&&r.c[i]?r.c[i].v:''});return o})}
+// Parse CSV text into array of objects using header row
+function parseCSV(text){
+  const lines=text.split('\n').filter(l=>l.trim());
+  if(lines.length<2)return[];
+  function splitRow(line){
+    const result=[];let cur='';let inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++}else{inQ=!inQ}}
+      else if(c===','&&!inQ){result.push(cur);cur=''}
+      else{cur+=c}}
+    result.push(cur);return result}
+  const headers=splitRow(lines[0]).map(h=>h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line=>{
+    const vals=splitRow(line);
+    const obj={};headers.forEach((h,i)=>{obj[h]=vals[i]?vals[i].replace(/^"|"$/g,''):''});return obj})}
 
 // Load songs list from 'songs' sheet, then load each song's lyrics
 async function loadFromSheets(){
   try{
     document.getElementById('lyricsDisplay').innerHTML='<div style="text-align:center;padding:40px;color:var(--text-dim)">📡 スプレッドシートから読み込み中...</div>';
-    const res=await fetch(sheetURL('songs'));const txt=await res.text();
-    const rows=parseGSheet(txt);
+    const res=await fetch(csvURL('songs'));
+    if(!res.ok)throw new Error('songs fetch failed: '+res.status);
+    const txt=await res.text();
+    const rows=parseCSV(txt);
     if(!rows.length){document.getElementById('lyricsDisplay').innerHTML='<div style="text-align:center;padding:40px;color:var(--text-dim)">曲データがありません</div>';return}
     songs=rows.map(r=>({id:r.id||'',title:r.title||'',artist:r.artist||'',lines:[]}));
     // Load each song's lyrics
     for(let i=0;i<songs.length;i++){
       try{
-        const r2=await fetch(sheetURL(songs[i].id));const t2=await r2.text();
-        const lRows=parseGSheet(t2);
+        const r2=await fetch(csvURL(songs[i].id));
+        if(!r2.ok)throw new Error('song fetch failed: '+r2.status);
+        const t2=await r2.text();
+        const lRows=parseCSV(t2);
         // Group by line number
         const lineMap={};
         lRows.forEach(r=>{
@@ -222,7 +237,7 @@ async function loadFromSheets(){
     tryLoadAudio();
   }catch(e){
     console.error('Sheet load error:',e);
-    document.getElementById('lyricsDisplay').innerHTML='<div style="text-align:center;padding:40px;color:var(--text-dim)">❌ 読み込み失敗。ネット接続を確認してください。<br><button class="btn-s pri" style="margin-top:10px" onclick="loadFromSheets()">再試行</button></div>';
+    document.getElementById('lyricsDisplay').innerHTML='<div style="text-align:center;padding:40px;color:var(--text-dim)">❌ 読み込み失敗<br><span style="font-size:10px">'+e.message+'</span><br><button class="btn-s pri" style="margin-top:10px" onclick="loadFromSheets()">再試行</button></div>';
   }
 }
 
