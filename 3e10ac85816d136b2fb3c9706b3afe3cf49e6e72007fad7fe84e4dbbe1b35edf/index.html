@@ -174,6 +174,12 @@ details[open] summary::before{content:'▾ '}
       <button class="btn-s" style="margin-top:8px;width:100%;padding:10px" onclick="loadFromSheets()">🔄 スプレッドシートから再読み込み</button>
       <p style="font-size:10px;color:var(--text-dim);margin-top:6px">新しい曲はスプレッドシートに追加すると反映されます</p>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <h3>タイムスタンプ共有</h3>
+        <p style="font-size:10px;color:var(--text-dim);margin-top:4px;margin-bottom:8px">タイミング設定後にコピーして、Claudeに貼り付けると家族のアプリにも反映できます</p>
+        <button class="btn-s pri" style="width:100%;padding:10px" onclick="exportTimestamps()">📋 タイムスタンプをコピー</button>
+        <div id="exportStatus" style="font-size:11px;color:var(--accent);margin-top:6px"></div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
         <h3>MP3の状態</h3>
         <div id="mp3Status" style="font-size:11px;color:var(--text-dim);margin-top:6px"></div>
       </div>
@@ -517,6 +523,23 @@ function renderSongList(){
   document.getElementById('songList').innerHTML=songs.map((s,i)=>`<div class="song-item ${i===curSong?'current':''}" onclick="selSong(${i})"><span class="s-name">${s.title} — ${s.artist}</span></div>`).join('');
   checkMP3()}
 function selSong(i){openSong(i)}
+function exportTimestamps(){
+  const song=songs[curSong];
+  if(!song){document.getElementById('exportStatus').textContent='曲を選択してください';return}
+  const data={songId:song.id,title:song.title,lines:[]};
+  let hasAny=false;
+  song.lines.forEach((line,i)=>{
+    const ld={line:i+1,time:line.time,translation:line.translation||'',words:[]};
+    line.words.forEach(w=>{if(w.time!==null){ld.words.push({text:w.text,time:w.time});hasAny=true}});
+    if(line.time!==null)hasAny=true;
+    data.lines.push(ld)});
+  if(!hasAny){document.getElementById('exportStatus').textContent='タイムスタンプが設定されていません';return}
+  const txt=JSON.stringify(data);
+  navigator.clipboard.writeText(txt).then(()=>{
+    document.getElementById('exportStatus').textContent='✅ コピーしました！Claudeに貼り付けてね';
+  }).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    document.getElementById('exportStatus').textContent='✅ コピーしました！Claudeに貼り付けてね'})}
 
 function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');document.getElementById('tab-'+tab).style.display='block';if(tab==='timing')renderTimingContent();if(tab==='edit')renderEditor();if(tab==='songs'){renderSongList();checkMP3()}}
 function fmt(s,precise){if(s==null)return'0:00';const m=Math.floor(s/60),sc=Math.floor(s%60),cs=Math.floor((s%1)*100);return precise?m+':'+(sc<10?'0':'')+sc+'.'+( cs<10?'0':'')+cs:m+':'+(sc<10?'0':'')+sc}
