@@ -246,8 +246,9 @@ function openDB(){return new Promise((r,j)=>{const q=indexedDB.open('kpop-v2',1)
 async function saveAudioDB(id,file){try{const db=await openDB(),tx=db.transaction('audio','readwrite'),buf=await file.arrayBuffer();tx.objectStore('audio').put({data:buf,name:file.name,type:file.type},id);await new Promise(r=>{tx.oncomplete=r})}catch(e){console.warn(e)}}
 async function loadAudioDB(id){try{const db=await openDB(),tx=db.transaction('audio','readonly');return new Promise(r=>{const q=tx.objectStore('audio').get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}catch(e){return null}}
 
-async function checkMP3(){const el=document.getElementById('mp3Status');if(!el)return;if(audio.src&&audio.src!==''){el.textContent='✅ MP3読み込み済み';return}const d=await loadAudioDB(songs[curSong].id);el.textContent=d?`✅ MP3保存済み（${d.name}）`:'🎵 MP3を読み込んでね！下のMP3ボタンをタップ'}
-async function tryLoadAudio(){const d=await loadAudioDB(songs[curSong].id);if(d){const b=new Blob([d.data],{type:d.type});audio.src=URL.createObjectURL(b);audio.load()}else{audio.src='';audio.load()}checkMP3()}
+let mp3Loaded=false;
+async function checkMP3(){const el=document.getElementById('mp3Status');if(!el)return;if(mp3Loaded){el.textContent='✅ MP3読み込み済み';return}const d=await loadAudioDB(songs[curSong].id);el.textContent=d?`✅ MP3保存済み（${d.name}）`:'🎵 MP3を読み込んでね！下のMP3ボタンをタップ'}
+async function tryLoadAudio(){const d=await loadAudioDB(songs[curSong].id);if(d){const b=new Blob([d.data],{type:d.type});audio.src=URL.createObjectURL(b);audio.load();mp3Loaded=true}else{audio.src='';mp3Loaded=false}checkMP3()}
 
 // Timing data: save only timing to localStorage (lyrics come from Sheets)
 function loadTimings(){
@@ -316,7 +317,7 @@ function cycleSpeed(){speedIdx=(speedIdx+1)%speeds.length;audio.playbackRate=spe
 
 document.getElementById('audioFileInput').addEventListener('change',async function(e){
   const f=e.target.files[0];if(!f)return;
-  audio.src=URL.createObjectURL(f);audio.load();
+  audio.src=URL.createObjectURL(f);audio.load();mp3Loaded=true;
   await saveAudioDB(songs[curSong].id,f);checkMP3()});
 
 // Editor
