@@ -58,12 +58,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .pos-eng .word-text{background:rgba(148,163,184,.12);color:var(--eng)}.pos-eng .word-meaning{color:var(--eng)}
 .line-translation{font-size:11px;color:var(--text-dim);padding-top:3px}
 .player-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:6px 14px calc(6px + var(--safe-bottom));z-index:100}
-.progress-wrap{width:100%;height:24px;display:flex;align-items:center;cursor:pointer;touch-action:none}
+.progress-wrap{width:100%;height:24px;display:flex;align-items:center;cursor:pointer;touch-action:none;position:relative}
 .progress-bg{width:100%;height:4px;background:var(--bg3);border-radius:2px;position:relative}
 .progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%}
 .player-controls{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
 .time-display{font-size:10px;color:var(--text-dim);font-variant-numeric:tabular-nums;min-width:32px}
-.play-btn{width:40px;height:40px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px}
+.play-btn{width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px}
 .ctrl-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:12px;font-size:11px;cursor:pointer}
 #audioFileInput{display:none}
 .section-pad{padding:10px 12px}
@@ -190,13 +190,22 @@ details[open] summary::before{content:'▾ '}
   <div id="playerUI">
     <div class="progress-wrap" id="progressWrap">
       <div class="progress-bg"><div class="progress-fill" id="progressFill"></div></div>
+      <div id="seekTooltip" style="position:absolute;top:-28px;left:0;background:var(--accent);color:#fff;font-size:10px;padding:2px 6px;border-radius:6px;pointer-events:none;display:none;font-variant-numeric:tabular-nums;white-space:nowrap"></div>
     </div>
     <div class="player-controls">
-      <span class="time-display" id="currentTime">0:00</span>
-      <button class="ctrl-btn" onclick="document.getElementById('audioFileInput').click()">🎵 MP3</button>
+      <span class="time-display" id="currentTime">0:00.00</span>
+      <button class="ctrl-btn" onclick="skip(-5)" style="font-size:14px;padding:6px 12px">-5s</button>
       <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
-      <button class="ctrl-btn" id="speedBtn" onclick="cycleSpeed()">1×</button>
-      <span class="time-display" id="totalTime">0:00</span>
+      <button class="ctrl-btn" onclick="skip(5)" style="font-size:14px;padding:6px 12px">+5s</button>
+      <span class="time-display" id="totalTime">0:00.00</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <button class="ctrl-btn" onclick="document.getElementById('audioFileInput').click()" style="font-size:10px">🎵 MP3</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="ctrl-btn" onclick="changeSpeed(-1)" style="font-size:12px;padding:3px 6px">🐢</button>
+        <span class="time-display" id="speedDisplay" style="min-width:28px;text-align:center;font-weight:600;font-size:11px">1×</span>
+        <button class="ctrl-btn" onclick="changeSpeed(1)" style="font-size:12px;padding:3px 6px">🐇</button>
+      </div>
     </div>
   </div>
 </div>
@@ -336,9 +345,9 @@ function renderLyrics(){
 audio.addEventListener('timeupdate',()=>{
   if(!audio.duration)return;
   document.getElementById('progressFill').style.width=((audio.currentTime/audio.duration)*100)+'%';
-  document.getElementById('currentTime').textContent=fmt(audio.currentTime);
+  document.getElementById('currentTime').textContent=fmt(audio.currentTime,true);
   syncHL(audio.currentTime)});
-audio.addEventListener('loadedmetadata',()=>document.getElementById('totalTime').textContent=fmt(audio.duration));
+audio.addEventListener('loadedmetadata',()=>document.getElementById('totalTime').textContent=fmt(audio.duration,true));
 
 function syncHL(t){
   const s=songs[curSong];let aL=-1;
@@ -352,14 +361,20 @@ function syncHL(t){
 
 // Player
 const pw=document.getElementById('progressWrap');
-function seekE(e){const r=pw.getBoundingClientRect(),cx=e.touches?e.touches[0].clientX:e.clientX,p=Math.max(0,Math.min(1,(cx-r.left)/r.width));if(audio.duration)audio.currentTime=p*audio.duration}
-pw.addEventListener('click',seekE);let drag=false;
-pw.addEventListener('touchstart',e=>{drag=true;seekE(e)},{passive:true});
-pw.addEventListener('touchmove',e=>{if(drag)seekE(e)},{passive:true});
-pw.addEventListener('touchend',()=>drag=false);
+const tooltip=document.getElementById('seekTooltip');
+function seekE(e,showTip){
+  const r=pw.getBoundingClientRect(),cx=e.touches?e.touches[0].clientX:e.clientX;
+  const p=Math.max(0,Math.min(1,(cx-r.left)/r.width));
+  if(audio.duration)audio.currentTime=p*audio.duration;
+  if(showTip){tooltip.style.display='block';tooltip.textContent=fmt(audio.currentTime,true);tooltip.style.left=Math.max(0,Math.min(r.width-40,(cx-r.left)-20))+'px'}}
+function hideTooltip(){tooltip.style.display='none'}
+pw.addEventListener('click',e=>{seekE(e,true);setTimeout(hideTooltip,800)});let drag=false;
+pw.addEventListener('touchstart',e=>{drag=true;seekE(e,true)},{passive:true});
+pw.addEventListener('touchmove',e=>{if(drag)seekE(e,true)},{passive:true});
+pw.addEventListener('touchend',()=>{drag=false;setTimeout(hideTooltip,500)});
 
 function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){audio.play();document.getElementById('playBtn').textContent='⏸'}else{audio.pause();document.getElementById('playBtn').textContent='▶'}}
-function cycleSpeed(){speedIdx=(speedIdx+1)%speeds.length;audio.playbackRate=speeds[speedIdx];document.getElementById('speedBtn').textContent=speeds[speedIdx]+'×'}
+function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));audio.playbackRate=speeds[speedIdx];document.getElementById('speedDisplay').textContent=speeds[speedIdx]+'×'}
 
 document.getElementById('audioFileInput').addEventListener('change',async function(e){
   const f=e.target.files[0];if(!f)return;
@@ -503,19 +518,26 @@ function renderWT(c){
   const s=songs[curSong];let h='';
   s.lines.forEach((l,i)=>{
     const prev=l.words.map(w=>w.text).join(' ');
-    h+=`<details class="e-card"><summary style="font-size:12px;padding:2px 0">#${i+1} ${prev}</summary><div style="margin-top:6px">`;
-    l.words.forEach((w,j)=>{const ts=w.time!==null?fmt(w.time,true):'';
-      h+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><span class="pos-${w.pos}" style="flex:1;font-size:11px"><span class="word-text" style="font-size:12px;padding:2px 5px">${w.text}</span></span><input class="t-time-input" value="${ts}" placeholder="--:--" onchange="setWT(${i},${j},this.value)" inputmode="decimal" style="width:50px"><button class="t-btn" onclick="tapWT(${i},${j})">TAP</button><button class="t-btn" onclick="clrWT(${i},${j})" style="color:#ef4444;border-color:#ef4444;padding:3px 5px">×</button></div>`});
-    h+=`</div></details>`});
+    const isOpen=wtOpenLines.has(i);
+    h+=`<div class="e-card" style="cursor:pointer"><div onclick="toggleWTLine(${i})" style="font-size:12px;padding:2px 0"><span style="color:var(--accent)">${isOpen?'▾':'▸'}</span> #${i+1} ${prev}</div>`;
+    if(isOpen){
+      h+=`<div style="margin-top:6px">`;
+      l.words.forEach((w,j)=>{const ts=w.time!==null?fmt(w.time,true):'';
+        h+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><span class="pos-${w.pos}" style="flex:1;font-size:11px"><span class="word-text" style="font-size:12px;padding:2px 5px">${w.text}</span></span><input class="t-time-input" value="${ts}" placeholder="--:--" onchange="setWT(${i},${j},this.value)" inputmode="decimal" style="width:50px"><button class="t-btn" onclick="tapWT(${i},${j})">TAP</button><button class="t-btn" onclick="clrWT(${i},${j})" style="color:#ef4444;border-color:#ef4444;padding:3px 5px">×</button></div>`});
+      h+=`</div>`}
+    h+=`</div>`});
   c.innerHTML=h}
 
-function tapLT(i){if(!audio.src||audio.paused)return alert('MP3を再生してからTAP');songs[curSong].lines[i].time=audio.currentTime;save();renderTimingContent()}
+function tapLT(i){if(!audio.src)return alert('先にMP3を読み込んでね');songs[curSong].lines[i].time=audio.currentTime;save();renderTimingContent()}
 function setLT(i,v){songs[curSong].lines[i].time=parseT(v);save();renderTimingContent()}
 function clrLT(i){songs[curSong].lines[i].time=null;save();renderTimingContent()}
 function clrAllLT(){songs[curSong].lines.forEach(l=>l.time=null);save();renderTimingContent();renderLyrics()}
-function tapWT(i,j){if(!audio.src||audio.paused)return alert('MP3を再生してからTAP');songs[curSong].lines[i].words[j].time=audio.currentTime;save();renderTimingContent()}
+let wtOpenLines=new Set();
+function toggleWTLine(i){if(wtOpenLines.has(i))wtOpenLines.delete(i);else wtOpenLines.add(i);renderTimingContent()}
+function tapWT(i,j){if(!audio.src)return alert('先にMP3を読み込んでね');songs[curSong].lines[i].words[j].time=audio.currentTime;save();renderTimingContent()}
 function setWT(i,j,v){songs[curSong].lines[i].words[j].time=parseT(v);save();renderTimingContent()}
 function clrWT(i,j){songs[curSong].lines[i].words[j].time=null;save();renderTimingContent()}
+function skip(sec){if(audio.src)audio.currentTime=Math.max(0,Math.min(audio.duration||0,audio.currentTime+sec))}
 function parseT(v){if(!v||v==='--:--')return null;if(v.includes(':')){const[m,s]=v.split(':');return parseInt(m)*60+parseFloat(s)}return parseFloat(v)||null}
 
 // Songs
