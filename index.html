@@ -246,7 +246,7 @@ function openDB(){return new Promise((r,j)=>{const q=indexedDB.open('kpop-v2',1)
 async function saveAudioDB(id,file){try{const db=await openDB(),tx=db.transaction('audio','readwrite'),buf=await file.arrayBuffer();tx.objectStore('audio').put({data:buf,name:file.name,type:file.type},id);await new Promise(r=>{tx.oncomplete=r})}catch(e){console.warn(e)}}
 async function loadAudioDB(id){try{const db=await openDB(),tx=db.transaction('audio','readonly');return new Promise(r=>{const q=tx.objectStore('audio').get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}catch(e){return null}}
 
-async function checkMP3(){const el=document.getElementById('mp3Status');if(!el)return;const d=await loadAudioDB(songs[curSong].id);el.textContent=d?`✅ MP3保存済み（${d.name}）`:'🎵 MP3を読み込んでね！下のMP3ボタンをタップ'}
+async function checkMP3(){const el=document.getElementById('mp3Status');if(!el)return;if(audio.src&&audio.src!==''){el.textContent='✅ MP3読み込み済み';return}const d=await loadAudioDB(songs[curSong].id);el.textContent=d?`✅ MP3保存済み（${d.name}）`:'🎵 MP3を読み込んでね！下のMP3ボタンをタップ'}
 async function tryLoadAudio(){const d=await loadAudioDB(songs[curSong].id);if(d){const b=new Blob([d.data],{type:d.type});audio.src=URL.createObjectURL(b);audio.load()}else{audio.src='';audio.load()}checkMP3()}
 
 // Timing data: save only timing to localStorage (lyrics come from Sheets)
@@ -449,7 +449,7 @@ function renderTimingContent(){const c=document.getElementById('timingContent');
 function renderLT(c){
   const s=songs[curSong];
   c.innerHTML=s.lines.map((l,i)=>{
-    const prev=l.words.map(w=>w.text).join(' ');const ts=l.time!==null?fmt(l.time):'';
+    const prev=l.words.map(w=>w.text).join(' ');const ts=l.time!==null?fmt(l.time,true):'';
     return `<div class="t-line"><span class="t-text">${prev}</span><input class="t-time-input" value="${ts}" placeholder="--:--" onchange="setLT(${i},this.value)" inputmode="decimal"><button class="t-btn" onclick="tapLT(${i})">TAP</button><button class="t-btn" onclick="clrLT(${i})" style="color:#ef4444;border-color:#ef4444">×</button></div>`}).join('')+`<div class="btn-row" style="margin-top:8px"><button class="btn-s dan" onclick="clrAllLT()">全リセット</button></div>`}
 
 function renderWT(c){
@@ -457,7 +457,7 @@ function renderWT(c){
   s.lines.forEach((l,i)=>{
     const prev=l.words.map(w=>w.text).join(' ');
     h+=`<details class="e-card"><summary style="font-size:12px;padding:2px 0">#${i+1} ${prev}</summary><div style="margin-top:6px">`;
-    l.words.forEach((w,j)=>{const ts=w.time!==null?fmt(w.time):'';
+    l.words.forEach((w,j)=>{const ts=w.time!==null?fmt(w.time,true):'';
       h+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><span class="pos-${w.pos}" style="flex:1;font-size:11px"><span class="word-text" style="font-size:12px;padding:2px 5px">${w.text}</span></span><input class="t-time-input" value="${ts}" placeholder="--:--" onchange="setWT(${i},${j},this.value)" inputmode="decimal" style="width:50px"><button class="t-btn" onclick="tapWT(${i},${j})">TAP</button><button class="t-btn" onclick="clrWT(${i},${j})" style="color:#ef4444;border-color:#ef4444;padding:3px 5px">×</button></div>`});
     h+=`</div></details>`});
   c.innerHTML=h}
@@ -478,7 +478,7 @@ function renderSongList(){
 function selSong(i){curSong=i;editLineIdx=editWordIdx=null;curLine=curWord=-1;renderAll();tryLoadAudio()}
 
 function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');document.getElementById('tab-'+tab).style.display='block';if(tab==='timing')renderTimingContent();if(tab==='edit')renderEditor();if(tab==='songs'){renderSongList();checkMP3()}}
-function fmt(s){if(s==null)return'0:00';const m=Math.floor(s/60),sc=Math.floor(s%60);return m+':'+(sc<10?'0':'')+sc}
+function fmt(s,precise){if(s==null)return'0:00';const m=Math.floor(s/60),sc=Math.floor(s%60),cs=Math.floor((s%1)*100);return precise?m+':'+(sc<10?'0':'')+sc+'.'+( cs<10?'0':'')+cs:m+':'+(sc<10?'0':'')+sc}
 function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 
 init();
