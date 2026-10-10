@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>K-POP 歌詞プレイヤー</title>
+<style>
+:root {
+  --bg: #0d0d12; --bg2: #16161e; --bg3: #1e1e2a;
+  --text: #e8e6e3; --text-dim: #8a8a9a; --accent: #a78bfa; --accent2: #7c3aed;
+  --noun: #f472b6; --particle: #60a5fa; --verb: #34d399; --adj: #fbbf24;
+  --adv: #fb923c; --pronoun: #38bdf8; --ending: #a78bfa; --eng: #94a3b8;
+  --border: #2a2a3a;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+  padding-top: var(--safe-top); padding-bottom: var(--safe-bottom);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f5f5f7; --bg2: #fff; --bg3: #eeeef2;
+    --text: #1a1a2e; --text-dim: #6b6b7b; --border: #d4d4dd;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d0d12; --bg2: #16161e; --bg3: #1e1e2a;
+  --text: #e8e6e3; --text-dim: #8a8a9a; --border: #2a2a3a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-padding-top:var(--safe-top)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.app{max-width:480px;margin:0 auto;padding-bottom:160px}
+.header{background:linear-gradient(135deg,#7c3aed 0%,#a78bfa 50%,#f472b6 100%);padding:18px 16px 14px;text-align:center}
+.header h1{font-size:18px;font-weight:800;color:#fff;letter-spacing:1px}
+.header .song-info{font-size:12px;color:rgba(255,255,255,.85);margin-top:3px}
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:12px;font-weight:600;color:var(--text-dim);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:5px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:37px;z-index:40}
+.legend-item{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:600}
+.lyrics-container{padding:6px 10px}
+.lyric-line{background:var(--bg2);border-radius:10px;padding:10px;margin-bottom:6px;border:1px solid var(--border);transition:border-color .3s,box-shadow .3s}
+.lyric-line.active{border-color:var(--accent);box-shadow:0 0 12px rgba(167,139,250,.15)}
+.lyric-line.past{opacity:.45}
+.words-row{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px}
+.word-block{text-align:center;padding:3px 1px;min-width:20px;transition:transform .15s,filter .15s}
+.word-block.word-active{transform:scale(1.12);filter:brightness(1.4)}
+.word-reading{font-size:9px;color:var(--text-dim);margin-bottom:1px;line-height:1.2}
+.word-text{font-size:16px;font-weight:700;padding:3px 6px;border-radius:5px;display:inline-block;line-height:1.3}
+.word-meaning{font-size:8px;margin-top:1px;line-height:1.2}
+.pos-noun .word-text{background:rgba(244,114,182,.2);color:var(--noun)}.pos-noun .word-meaning{color:var(--noun)}
+.pos-particle .word-text{background:rgba(96,165,250,.2);color:var(--particle)}.pos-particle .word-meaning{color:var(--particle)}
+.pos-verb .word-text{background:rgba(52,211,153,.2);color:var(--verb)}.pos-verb .word-meaning{color:var(--verb)}
+.pos-adj .word-text{background:rgba(251,191,36,.2);color:var(--adj)}.pos-adj .word-meaning{color:var(--adj)}
+.pos-adv .word-text{background:rgba(251,146,60,.2);color:var(--adv)}.pos-adv .word-meaning{color:var(--adv)}
+.pos-pronoun .word-text{background:rgba(56,189,248,.2);color:var(--pronoun)}.pos-pronoun .word-meaning{color:var(--pronoun)}
+.pos-ending .word-text{background:rgba(167,139,250,.2);color:var(--ending)}.pos-ending .word-meaning{color:var(--ending)}
+.pos-eng .word-text{background:rgba(148,163,184,.12);color:var(--eng)}.pos-eng .word-meaning{color:var(--eng)}
+.line-translation{font-size:11px;color:var(--text-dim);padding-top:3px}
+.player-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:6px 14px calc(6px + var(--safe-bottom));z-index:100}
+.progress-wrap{width:100%;height:24px;display:flex;align-items:center;cursor:pointer;touch-action:none;position:relative}
+.progress-bg{width:100%;height:4px;background:var(--bg3);border-radius:2px;position:relative}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%}
+.player-controls{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.time-display{font-size:10px;color:var(--text-dim);font-variant-numeric:tabular-nums;min-width:32px}
+.play-btn{width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px}
+.ctrl-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:12px;font-size:11px;cursor:pointer}
+#audioFileInput{display:none}
+.section-pad{padding:10px 12px}
+.section-pad h3{font-size:13px;margin-bottom:8px;color:var(--accent)}
+.e-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:6px}
+.e-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.e-num{font-size:10px;color:var(--text-dim)}
+.e-preview{font-size:12px;margin-bottom:3px}
+.e-trans{font-size:10px;color:var(--text-dim)}
+.e-input{width:100%;padding:7px 9px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;margin-bottom:5px}
+.e-input::placeholder{color:var(--text-dim)}
+select.e-input{-webkit-appearance:none;appearance:none}
+.btn-row{display:flex;gap:5px;flex-wrap:wrap}
+.btn-s{padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:11px;cursor:pointer}
+.btn-s.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-s.dan{background:#ef4444;color:#fff;border-color:#ef4444}
+.word-chips{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.w-chip{font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;display:flex;align-items:center;gap:3px}
+.w-chip.sel{border-color:var(--accent);background:rgba(167,139,250,.15)}
+.w-chip .arr{font-size:9px;padding:1px 3px;cursor:pointer;color:var(--accent)}
+.t-line{display:flex;align-items:center;gap:6px;padding:8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:5px;font-size:12px}
+.t-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t-time-input{width:55px;text-align:center;padding:3px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--accent);font-size:10px;font-variant-numeric:tabular-nums}
+.t-btn{padding:3px 8px;border-radius:5px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:10px;cursor:pointer;white-space:nowrap}
+.t-btn:active{background:var(--accent);color:#fff}
+.sub-tabs{display:flex;gap:0;margin-bottom:8px}
+.sub-tab{flex:1;padding:8px;text-align:center;font-size:11px;font-weight:600;color:var(--text-dim);background:var(--bg3);border:1px solid var(--border);cursor:pointer}
+.sub-tab:first-child{border-radius:8px 0 0 8px}
+.sub-tab:last-child{border-radius:0 8px 8px 0}
+.sub-tab.active{color:var(--accent);background:rgba(167,139,250,.1);border-color:var(--accent)}
+.song-item{display:flex;align-items:center;gap:6px;padding:8px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:5px;cursor:pointer;font-size:12px}
+.song-item.current{border-color:var(--accent)}
+.song-item .s-name{flex:1}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--bg2);border-radius:16px 16px 0 0;padding:16px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto}
+.modal h3{font-size:15px;margin-bottom:10px;color:var(--accent)}
+.modal textarea{width:100%;min-height:150px;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;resize:vertical}
+.home-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s,transform .15s}
+.home-card:active{transform:scale(.98);border-color:var(--accent)}
+.home-card .hc-title{font-size:15px;font-weight:700;margin-bottom:2px}
+.home-card .hc-artist{font-size:12px;color:var(--text-dim)}
+.back-btn{background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;padding:8px 12px}
+details summary{list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:'▸ ';color:var(--accent)}
+details[open] summary::before{content:'▾ '}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="header">
+    <h1>K-POPで韓国語</h1>
+    <div class="song-info" id="songTitle"></div>
+  </div>
+  <!-- HOME screen -->
+  <div id="homeScreen">
+    <div style="text-align:center;padding:30px 16px 10px">
+      <div style="font-size:48px;margin-bottom:8px">🎵</div>
+      <p style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:4px">曲を選んでスタート！</p>
+      <p style="font-size:11px;color:var(--text-dim)">歌詞を見ながら韓国語を学ぼう</p>
+    </div>
+    <div class="section-pad" id="homeSongList">
+      <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">📡 読み込み中...</div>
+    </div>
+  </div>
+  <!-- PLAYER screen (hidden initially) -->
+  <div id="playerScreen" style="display:none">
+    <div class="tabs">
+      <button class="tab active" data-tab="play" onclick="switchTab('play')">再生</button>
+      <button class="tab" data-tab="edit" onclick="switchTab('edit')">歌詞編集</button>
+      <button class="tab" data-tab="timing" onclick="switchTab('timing')">タイミング</button>
+      <button class="tab" data-tab="songs" onclick="switchTab('songs')">曲管理</button>
+    </div>
+    <div class="tab-content" id="tab-play">
+      <div class="legend" id="legend"></div>
+      <div class="lyrics-container" id="lyricsDisplay"></div>
+    </div>
+  </div>
+  <div class="tab-content" id="tab-edit" style="display:none">
+    <div class="section-pad">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3 style="margin:0">歌詞ライン</h3>
+        <div class="btn-row">
+          <button class="btn-s pri" onclick="showPasteModal()">📋 貼り付け</button>
+          <button class="btn-s" onclick="addNewLine()">＋ 行追加</button>
+        </div>
+      </div>
+      <div id="editLines"></div>
+    </div>
+  </div>
+  <div class="tab-content" id="tab-timing" style="display:none">
+    <div class="section-pad">
+      <div class="sub-tabs">
+        <div class="sub-tab active" onclick="setTimingMode('line')">行タイミング</div>
+        <div class="sub-tab" onclick="setTimingMode('word')">単語タイミング</div>
+      </div>
+      <p style="font-size:10px;color:var(--text-dim);margin-bottom:6px">MP3再生中にTAPを押すと現在位置を記録。手入力も可（例: 1:23）</p>
+      <div id="timingContent"></div>
+    </div>
+  </div>
+  <div class="tab-content" id="tab-songs" style="display:none">
+    <div class="section-pad">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 style="margin:0">曲リスト</h3>
+        <button class="back-btn" onclick="goHome()">← ホームに戻る</button>
+      </div>
+      <div id="songList" style="margin-top:8px"></div>
+      <button class="btn-s" style="margin-top:8px;width:100%;padding:10px" onclick="loadFromSheets()">🔄 スプレッドシートから再読み込み</button>
+      <p style="font-size:10px;color:var(--text-dim);margin-top:6px">新しい曲はスプレッドシートに追加すると反映されます</p>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <h3>データ共有</h3>
+        <p style="font-size:10px;color:var(--text-dim);margin-top:4px;margin-bottom:8px">歌詞・タイムスタンプの編集内容をコピーして、Claudeに貼り付けるとスプレッドシートに反映→家族にも共有されます</p>
+        <button class="btn-s pri" style="width:100%;padding:10px" onclick="exportAllData()">📋 この曲のデータをコピー</button>
+        <div id="exportStatus" style="font-size:11px;color:var(--accent);margin-top:6px"></div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <h3>MP3の状態</h3>
+        <div id="mp3Status" style="font-size:11px;color:var(--text-dim);margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="player-bar">
+  <div id="playerUI">
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bg"><div class="progress-fill" id="progressFill"></div></div>
+      <div id="seekTooltip" style="position:absolute;top:-28px;left:0;background:var(--accent);color:#fff;font-size:10px;padding:2px 6px;border-radius:6px;pointer-events:none;display:none;font-variant-numeric:tabular-nums;white-space:nowrap"></div>
+    </div>
+    <div class="player-controls">
+      <span class="time-display" id="currentTime">0:00.00</span>
+      <button class="ctrl-btn" onclick="skip(-5)" style="font-size:14px;padding:6px 12px">-5s</button>
+      <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+      <button class="ctrl-btn" onclick="skip(5)" style="font-size:14px;padding:6px 12px">+5s</button>
+      <span class="time-display" id="totalTime">0:00.00</span>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <button class="ctrl-btn" onclick="document.getElementById('audioFileInput').click()" style="font-size:10px">🎵 MP3</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="ctrl-btn" onclick="changeSpeed(-1)" style="font-size:12px;padding:3px 6px">🐢</button>
+        <span class="time-display" id="speedDisplay" style="min-width:28px;text-align:center;font-weight:600;font-size:11px">1×</span>
+        <button class="ctrl-btn" onclick="changeSpeed(1)" style="font-size:12px;padding:3px 6px">🐇</button>
+      </div>
+    </div>
+  </div>
+</div>
+<input type="file" id="audioFileInput" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac,.flac">
+<audio id="audioPlayer"></audio>
+<div id="modalRoot"></div>
+
+<script>
+const POS={noun:{l:'名詞',c:'#f472b6',bg:'rgba(244,114,182,.2)'},particle:{l:'助詞',c:'#60a5fa',bg:'rgba(96,165,250,.2)'},verb:{l:'動詞',c:'#34d399',bg:'rgba(52,211,153,.2)'},adj:{l:'形容詞',c:'#fbbf24',bg:'rgba(251,191,36,.2)'},adv:{l:'副詞',c:'#fb923c',bg:'rgba(251,146,60,.2)'},pronoun:{l:'代名詞',c:'#38bdf8',bg:'rgba(56,189,248,.2)'},ending:{l:'語尾',c:'#a78bfa',bg:'rgba(167,139,250,.2)'},eng:{l:'英語',c:'#94a3b8',bg:'rgba(148,163,184,.12)'}};
+const W=()=>({text:'',reading:'',meaning:'',pos:'noun',time:null});
+
+// Google Sheets config
+const SHEET_ID='1nlVHLi43foVRPKqaDyYR-BJfgoySKuBlBYTO08vK6Ss';
+function csvURL(name){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`}
+
+let songs=[];
+let curSong=0,curLine=-1,curWord=-1,timingMode='line',editLineIdx=null,editWordIdx=null;
+let audio=document.getElementById('audioPlayer'),speeds=[.5,.75,1,1.25,1.5],speedIdx=2;
+
+// Parse CSV text into array of objects using header row
+function parseCSV(text){
+  const lines=text.split('\n').filter(l=>l.trim());
+  if(lines.length<2)return[];
+  function splitRow(line){
+    const result=[];let cur='';let inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++}else{inQ=!inQ}}
+      else if(c===','&&!inQ){result.push(cur);cur=''}
+      else{cur+=c}}
+    result.push(cur);return result}
+  const headers=splitRow(lines[0]).map(h=>h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line=>{
+    const vals=splitRow(line);
+    const obj={};headers.forEach((h,i)=>{obj[h]=vals[i]?vals[i].replace(/^"|"$/g,''):''});return obj})}
+
+// Load songs list from 'songs' sheet, then load each song's lyrics
+async function loadFromSheets(){
+  try{
+    document.getElementById('lyricsDisplay').innerHTML='<div style="text-align:center;padding:40px;color:var(--text-dim)">📡 スプレッドシートから読み込み中...</div>';
+    const res=await fetch(csvURL('songs'));
+    if(!res.ok)throw new Error('songs fetch failed: '+res.status);
+    const txt=await res.text();
+    const rows=parseCSV(txt);
+    if(!rows.length){document.getElementById('lyricsDisplay').innerHTML='<div style="text-align:center;padding:40px;color:var(--text-dim)">曲データがありません</div>';return}
+    songs=rows.map(r=>({id:r.id||'',title:r.title||'',artist:r.artist||'',lines:[]}));
+    // Load each song's lyrics
+    for(let i=0;i<songs.length;i++){
+      try{
+        const r2=await fetch(csvURL(songs[i].id));
+        if(!r2.ok)throw new Error('song fetch failed: '+r2.status);
+        const t2=await r2.text();
+        const lRows=parseCSV(t2);
+        // Group by line number
+        const lineMap={};
+        lRows.forEach(r=>{
+          const ln=parseInt(r.line)||0;if(!ln)return;
+          if(!lineMap[ln])lineMap[ln]={words:[],lineTime:null,translation:''};
+          const lt=parseFloat(r.line_time);if(!isNaN(lt))lineMap[ln].lineTime=lt;
+          if(r.translation)lineMap[ln].translation=r.translation;
+          const wt=parseFloat(r.word_time);
+          lineMap[ln].words.push({text:r.text||'',reading:r.reading||'',meaning:r.meaning||'',pos:r.pos||'noun',time:isNaN(wt)?null:wt})});
+        songs[i].lines=Object.keys(lineMap).sort((a,b)=>a-b).map(k=>({time:lineMap[k].lineTime,translation:lineMap[k].translation,words:lineMap[k].words}));
+      }catch(e){console.warn('Failed to load song:',songs[i].id,e)}
+    }
+    // Merge saved timing data from localStorage
+    loadTimings();
+    renderHome();
+  }catch(e){
+    console.error('Sheet load error:',e);
+    document.getElementById('lyricsDisplay').innerHTML='<div style="text-align:center;padding:40px;color:var(--text-dim)">❌ 読み込み失敗<br><span style="font-size:10px">'+e.message+'</span><br><button class="btn-s pri" style="margin-top:10px" onclick="loadFromSheets()">再試行</button></div>';
+  }
+}
+
+// DB for MP3
+function openDB(){return new Promise((r,j)=>{const q=indexedDB.open('kpop-v2',1);q.onupgradeneeded=e=>e.target.result.createObjectStore('audio');q.onsuccess=e=>r(e.target.result);q.onerror=j})}
+async function saveAudioDB(id,file){try{const db=await openDB(),tx=db.transaction('audio','readwrite'),buf=await file.arrayBuffer();tx.objectStore('audio').put({data:buf,name:file.name,type:file.type},id);await new Promise(r=>{tx.oncomplete=r})}catch(e){console.warn(e)}}
+async function loadAudioDB(id){try{const db=await openDB(),tx=db.transaction('audio','readonly');return new Promise(r=>{const q=tx.objectStore('audio').get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}catch(e){return null}}
+
+let mp3Loaded=false;
+async function checkMP3(){const el=document.getElementById('mp3Status');if(!el)return;if(mp3Loaded){el.textContent='✅ MP3読み込み済み';return}const d=await loadAudioDB(songs[curSong].id);el.textContent=d?`✅ MP3保存済み（${d.name}）`:'🎵 MP3を読み込んでね！下のMP3ボタンをタップ'}
+async function tryLoadAudio(){const d=await loadAudioDB(songs[curSong].id);if(d){const b=new Blob([d.data],{type:d.type});audio.src=URL.createObjectURL(b);audio.load();mp3Loaded=true}else{audio.src='';mp3Loaded=false}checkMP3()}
+
+// Timing data: save only timing to localStorage (lyrics come from Sheets)
+function loadTimings(){
+  try{const s=localStorage.getItem('kpop-timings');if(!s)return;
+    const data=JSON.parse(s);
+    songs.forEach(song=>{
+      const td=data[song.id];if(!td)return;
+      song.lines.forEach((line,i)=>{
+        if(td[i]){line.time=td[i].time??null;
+          line.translation=td[i].tr||line.translation||'';
+          if(td[i].wt){line.words.forEach((w,j)=>{if(td[i].wt[j]!==undefined)w.time=td[i].wt[j]})}
+        }})})
+  }catch(e){}}
+function saveTimings(){
+  try{const data={};
+    songs.forEach(song=>{
+      const sd={};
+      song.lines.forEach((line,i)=>{
+        const hasData=line.time!==null||line.translation||(line.words.some(w=>w.time!==null));
+        if(hasData){sd[i]={time:line.time,tr:line.translation||'',wt:line.words.map(w=>w.time)}}});
+      if(Object.keys(sd).length)data[song.id]=sd});
+    localStorage.setItem('kpop-timings',JSON.stringify(data))
+  }catch(e){}}
+function save(){saveTimings()}
+
+function init(){renderLegend();loadFromSheets()}
+
+function renderAll(){if(!songs.length)return;renderLyrics();renderEditor();renderTimingContent();renderSongList();updTitle()}
+function updTitle(){document.getElementById('songTitle').textContent=`♪ ${songs[curSong].title} — ${songs[curSong].artist}`}
+
+function renderHome(){
+  const el=document.getElementById('homeSongList');
+  if(!songs.length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">📡 読み込み中...</div>';return}
+  el.innerHTML=songs.map((s,i)=>`<div class="home-card" onclick="openSong(${i})"><div class="hc-title">${s.title}</div><div class="hc-artist">${s.artist}</div></div>`).join('')}
+
+function openSong(i){
+  curSong=i;editLineIdx=editWordIdx=null;curLine=curWord=-1;
+  document.getElementById('homeScreen').style.display='none';
+  document.getElementById('playerScreen').style.display='block';
+  renderAll();tryLoadAudio();switchTab('play')}
+
+function goHome(){
+  document.getElementById('playerScreen').style.display='none';
+  document.getElementById('homeScreen').style.display='block';
+  document.getElementById('songTitle').textContent='';
+  audio.pause();document.getElementById('playBtn').textContent='▶';
+  renderHome()}
+
+function renderLegend(){document.getElementById('legend').innerHTML=Object.entries(POS).map(([k,v])=>`<span class="legend-item" style="background:${v.bg};color:${v.c}">${v.l}</span>`).join('')}
+
+function renderLyrics(){
+  const c=document.getElementById('lyricsDisplay'),s=songs[curSong];
+  c.innerHTML=s.lines.map((l,i)=>{
+    const wh=l.words.map((w,j)=>`<div class="word-block pos-${w.pos}" id="wb-${i}-${j}"><div class="word-reading">${w.reading||''}</div><span class="word-text">${w.text}</span><div class="word-meaning">${w.meaning||''}</div></div>`).join('');
+    const clickAttr=l.time!==null?`onclick="seekToLine(${i})" style="cursor:pointer"`:'';
+    return `<div class="lyric-line" id="line-${i}" ${clickAttr}><div class="words-row">${wh}</div>${l.translation?`<div class="line-translation">${l.translation}</div>`:''}</div>`}).join('')}
+
+// Sync
+function animLoop(){
+  if(audio.src&&audio.duration){
+    document.getElementById('progressFill').style.width=((audio.currentTime/audio.duration)*100)+'%';
+    document.getElementById('currentTime').textContent=fmt(audio.currentTime,true);
+    syncHL(audio.currentTime)}
+  requestAnimationFrame(animLoop)}
+requestAnimationFrame(animLoop);
+audio.addEventListener('loadedmetadata',()=>document.getElementById('totalTime').textContent=fmt(audio.duration,true));
+
+function syncHL(t){
+  const s=songs[curSong];let aL=-1;
+  for(let i=s.lines.length-1;i>=0;i--){if(s.lines[i].time!==null&&t>=s.lines[i].time){aL=i;break}}
+  let aW=-1;
+  if(aL>=0){const ws=s.lines[aL].words;for(let j=ws.length-1;j>=0;j--){if(ws[j].time!==null&&t>=ws[j].time){aW=j;break}}}
+  if(aL!==curLine){curLine=aL;document.querySelectorAll('.lyric-line').forEach((el,i)=>{el.classList.remove('active','past');if(i===aL){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'center'})}else if(i<aL)el.classList.add('past')})}
+  document.querySelectorAll('.word-block').forEach(el=>el.classList.remove('word-active'));
+  if(aL>=0&&aW>=0){const el=document.getElementById(`wb-${aL}-${aW}`);if(el)el.classList.add('word-active')}
+  curWord=aW}
+
+// Player
+const pw=document.getElementById('progressWrap');
+const tooltip=document.getElementById('seekTooltip');
+function seekE(e,showTip){
+  const r=pw.getBoundingClientRect(),cx=e.touches?e.touches[0].clientX:e.clientX;
+  const p=Math.max(0,Math.min(1,(cx-r.left)/r.width));
+  if(audio.duration)audio.currentTime=p*audio.duration;
+  if(showTip){tooltip.style.display='block';tooltip.textContent=fmt(audio.currentTime,true);tooltip.style.left=Math.max(0,Math.min(r.width-40,(cx-r.left)-20))+'px'}}
+function hideTooltip(){tooltip.style.display='none'}
+pw.addEventListener('click',e=>{seekE(e,true);setTimeout(hideTooltip,800)});let drag=false;
+pw.addEventListener('touchstart',e=>{drag=true;seekE(e,true)},{passive:true});
+pw.addEventListener('touchmove',e=>{if(drag)seekE(e,true)},{passive:true});
+pw.addEventListener('touchend',()=>{drag=false;setTimeout(hideTooltip,500)});
+
+function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){audio.play();document.getElementById('playBtn').textContent='⏸'}else{audio.pause();document.getElementById('playBtn').textContent='▶'}}
+function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));audio.playbackRate=speeds[speedIdx];document.getElementById('speedDisplay').textContent=speeds[speedIdx]+'×'}
+
+document.getElementById('audioFileInput').addEventListener('change',async function(e){
+  const f=e.target.files[0];if(!f)return;
+  audio.src=URL.createObjectURL(f);audio.load();mp3Loaded=true;
+  await saveAudioDB(songs[curSong].id,f);checkMP3()});
+
+// Editor
+function renderEditor(){
+  const c=document.getElementById('editLines'),s=songs[curSong];
+  c.innerHTML=s.lines.map((l,i)=>{
+    const prev=l.words.map(w=>w.text).join('');
+    const open=editLineIdx===i;
+    return `<div class="e-card"><div class="e-header"><span class="e-num">#${i+1}</span><div class="btn-row">${i>0?`<button class="btn-s" onclick="mvLine(${i},-1)">▲</button>`:''} ${i<s.lines.length-1?`<button class="btn-s" onclick="mvLine(${i},1)">▼</button>`:''}<button class="btn-s" onclick="edLine(${i})">${open?'閉':'編集'}</button><button class="btn-s dan" onclick="delLine(${i})">×</button></div></div><div class="e-preview">${prev}</div><div class="e-trans">${l.translation||''}</div>${open?lineEd(i):''}</div>`}).join('')}
+
+function lineEd(li){
+  const l=songs[curSong].lines[li];
+  const chips=l.words.map((w,wi)=>`<div class="w-chip ${editWordIdx===wi?'sel':''}" onclick="selW(${li},${wi})"><span>${w.text||'(空)'}</span><span style="display:flex;gap:1px">${wi>0?`<span class="arr" onclick="event.stopPropagation();mvW(${li},${wi},-1)">◀</span>`:''} ${wi<l.words.length-1?`<span class="arr" onclick="event.stopPropagation();mvW(${li},${wi},1)">▶</span>`:''}</span></div>`).join('');
+  let we='';
+  if(editWordIdx!==null&&l.words[editWordIdx]){const w=l.words[editWordIdx];
+    we=`<div style="margin-top:6px;padding:8px;background:var(--bg);border-radius:8px"><input class="e-input" value="${esc(w.text)}" placeholder="韓国語" onchange="upW(${li},${editWordIdx},'text',this.value)"><input class="e-input" value="${esc(w.reading)}" placeholder="読み（カタカナ）" onchange="upW(${li},${editWordIdx},'reading',this.value)"><input class="e-input" value="${esc(w.meaning)}" placeholder="意味（～を、～に等）" onchange="upW(${li},${editWordIdx},'meaning',this.value)"><select class="e-input" onchange="upW(${li},${editWordIdx},'pos',this.value)">${Object.entries(POS).map(([k,v])=>`<option value="${k}"${w.pos===k?' selected':''}>${v.l}</option>`).join('')}</select><div class="btn-row"><button class="btn-s" onclick="insW(${li},${editWordIdx})">↑前に挿入</button><button class="btn-s" onclick="insW(${li},${editWordIdx}+1)">↓後に挿入</button><button class="btn-s dan" onclick="rmW(${li},${editWordIdx})">削除</button></div></div>`}
+  return `<div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px"><input class="e-input" value="${esc(l.translation||'')}" placeholder="和訳" onchange="songs[${curSong}].lines[${li}].translation=this.value;save();renderLyrics()"><div class="word-chips">${chips}<div class="w-chip" onclick="insW(${li},${songs[curSong].lines[li].words.length})" style="color:var(--accent);border-color:var(--accent)">＋</div></div>${we}</div>`}
+
+function edLine(i){editLineIdx=editLineIdx===i?null:i;editWordIdx=null;renderEditor()}
+function selW(li,wi){editWordIdx=editWordIdx===wi?null:wi;renderEditor()}
+function upW(li,wi,f,v){songs[curSong].lines[li].words[wi][f]=v;save();renderLyrics();renderEditor()}
+function mvW(li,wi,d){const ws=songs[curSong].lines[li].words,ni=wi+d;if(ni<0||ni>=ws.length)return;[ws[wi],ws[ni]]=[ws[ni],ws[wi]];editWordIdx=ni;save();renderEditor();renderLyrics()}
+function insW(li,at){songs[curSong].lines[li].words.splice(at,0,W());editWordIdx=at;save();renderEditor();renderLyrics()}
+function rmW(li,wi){songs[curSong].lines[li].words.splice(wi,1);editWordIdx=null;save();renderEditor();renderLyrics()}
+function mvLine(i,d){const ls=songs[curSong].lines,ni=i+d;if(ni<0||ni>=ls.length)return;[ls[i],ls[ni]]=[ls[ni],ls[i]];if(editLineIdx===i)editLineIdx=ni;else if(editLineIdx===ni)editLineIdx=i;save();renderEditor();renderLyrics();renderTimingContent()}
+function addNewLine(){songs[curSong].lines.push({time:null,translation:'',words:[W()]});save();renderAll()}
+function delLine(i){if(!confirm(`行#${i+1}を削除？`))return;songs[curSong].lines.splice(i,1);editLineIdx=editWordIdx=null;save();renderAll()}
+
+// Paste
+function showPasteModal(){document.getElementById('modalRoot').innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeM()"><div class="modal"><h3>歌詞を貼り付け</h3><p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">歌詞をコピペしてください。1行＝1ライン。空行は無視。助詞（는/을/에等）は自動で分離されます。</p><textarea id="pasteArea" placeholder="달이 이렇게 눈부시는 밤엔\nWhy do I feel so lonely"></textarea><div class="btn-row" style="margin-top:10px"><button class="btn-s pri" onclick="doPaste('append')">📥 追加（既存の後ろに足す）</button><button class="btn-s dan" onclick="doPaste('overwrite')">🔄 上書き（全部入れ替え）</button><button class="btn-s" onclick="closeM()">キャンセル</button></div></div></div>`}
+// Korean particle auto-split rules (longest match first)
+const PARTICLES=[
+  {p:'에서',m:'～で'},{p:'에게',m:'～に(人)'},{p:'부터',m:'～から'},{p:'까지',m:'～まで'},{p:'처럼',m:'～のように'},{p:'마다',m:'～ごと'},{p:'보다',m:'～より'},{p:'밖에',m:'～しか'},{p:'한테',m:'～に(人)'},
+  {p:'는',m:'～は'},{p:'은',m:'～は'},{p:'를',m:'～を'},{p:'을',m:'～を'},{p:'가',m:'～が'},{p:'이',m:'～が'},{p:'의',m:'～の'},{p:'에',m:'～に'},{p:'도',m:'～も'},{p:'로',m:'～で/へ'},{p:'과',m:'～と'},{p:'와',m:'～と'},{p:'랑',m:'～と'},{p:'만',m:'～だけ'},{p:'야',m:'～よ'},{p:'아',m:'～よ'},{p:'요',m:'～です'}
+];
+// Endings to split
+const ENDINGS=[
+  {p:'습니다',m:'～ます'},{p:'ㅂ니다',m:'～ます'},{p:'세요',m:'～てください'},{p:'니까',m:'～だから'},{p:'지만',m:'～けど'},{p:'면서',m:'～しながら'},{p:'으면',m:'～なら'},{p:'겠지',m:'～でしょう'},
+  {p:'지',m:'～でしょ'},{p:'고',m:'～して'},{p:'며',m:'～しつつ'},{p:'면',m:'～なら'},{p:'서',m:'～して'}
+];
+function isHangul(c){const code=c.charCodeAt(0);return code>=0xAC00&&code<=0xD7AF||code>=0x3131&&code<=0x318E}
+// Hangul → Katakana converter
+const CHO=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const JUNG=['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+const JONG=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+function decomposeHangul(ch){const c=ch.charCodeAt(0);if(c<0xAC00||c>0xD7AF)return null;const n=c-0xAC00;return{cho:Math.floor(n/588),jung:Math.floor((n%588)/28),jong:n%28}}
+// Initial consonant → katakana mapping (context-dependent, simplified)
+const CHO_K={0:'カ',1:'ッカ',2:'ナ',3:'タ',4:'ッタ',5:'ラ',6:'マ',7:'パ',8:'ッパ',9:'サ',10:'ッサ',11:'ア',12:'チャ',13:'ッチャ',14:'チャ',15:'カ',16:'タ',17:'パ',18:'ハ'};
+// Vowel → katakana
+const JUNG_K={0:'ア',1:'エ',2:'ヤ',3:'イェ',4:'オ',5:'エ',6:'ヨ',7:'イェ',8:'オ',9:'ワ',10:'ウェ',11:'ウェ',12:'ヨ',13:'ウ',14:'ウォ',15:'ウェ',16:'ウィ',17:'ユ',18:'ウ',19:'ウィ',20:'イ'};
+// Final consonant → katakana
+const JONG_K={0:'',1:'ク',2:'ク',3:'ク',4:'ン',5:'ン',6:'ン',7:'ッ',8:'ル',9:'ル',10:'ル',11:'ル',12:'ル',13:'ル',14:'ル',15:'ル',16:'ム',17:'プ',18:'プ',19:'ッ',20:'ッ',21:'ン',22:'ッ',23:'ッ',24:'ク',25:'ッ',26:'プ',27:'ッ'};
+// Combine initial+vowel for more natural katakana
+function choJungToKana(cho,jung){
+  // Map cho to base consonant sound
+  const cBase=[['カ','ケ','キャ','キェ','コ','ケ','キョ','キェ','コ','クァ','クェ','クェ','キョ','ク','クォ','クェ','クィ','キュ','ク','クィ','キ'],
+  ['ッカ','ッケ','ッキャ','ッキェ','ッコ','ッケ','ッキョ','ッキェ','ッコ','ックァ','ックェ','ックェ','ッキョ','ック','ックォ','ックェ','ックィ','ッキュ','ック','ックィ','ッキ'],
+  ['ナ','ネ','ニャ','ニェ','ノ','ネ','ニョ','ニェ','ノ','ヌァ','ヌェ','ヌェ','ニョ','ヌ','ヌォ','ヌェ','ヌィ','ニュ','ヌ','ヌィ','ニ'],
+  ['タ','テ','ティャ','ティェ','ト','テ','ティョ','ティェ','ト','トゥァ','トゥェ','トゥェ','ティョ','トゥ','トゥォ','トゥェ','トゥィ','テュ','トゥ','トゥィ','ティ'],
+  ['ッタ','ッテ','ッティャ','ッティェ','ット','ッテ','ッティョ','ッティェ','ット','ットゥァ','ットゥェ','ットゥェ','ッティョ','ットゥ','ットゥォ','ットゥェ','ットゥィ','ッテュ','ットゥ','ットゥィ','ッティ'],
+  ['ラ','レ','リャ','リェ','ロ','レ','リョ','リェ','ロ','ルァ','ルェ','ルェ','リョ','ル','ルォ','ルェ','ルィ','リュ','ル','ルィ','リ'],
+  ['マ','メ','ミャ','ミェ','モ','メ','ミョ','ミェ','モ','ムァ','ムェ','ムェ','ミョ','ム','ムォ','ムェ','ムィ','ミュ','ム','ムィ','ミ'],
+  ['パ','ペ','ピャ','ピェ','ポ','ペ','ピョ','ピェ','ポ','プァ','プェ','プェ','ピョ','プ','プォ','プェ','プィ','ピュ','プ','プィ','ピ'],
+  ['ッパ','ッペ','ッピャ','ッピェ','ッポ','ッペ','ッピョ','ッピェ','ッポ','ップァ','ップェ','ップェ','ッピョ','ップ','ップォ','ップェ','ップィ','ッピュ','ップ','ップィ','ッピ'],
+  ['サ','セ','シャ','シェ','ソ','セ','ショ','シェ','ソ','スァ','スェ','スェ','ショ','ス','スォ','スェ','スィ','シュ','ス','スィ','シ'],
+  ['ッサ','ッセ','ッシャ','ッシェ','ッソ','ッセ','ッショ','ッシェ','ッソ','ッスァ','ッスェ','ッスェ','ッショ','ッス','ッスォ','ッスェ','ッスィ','ッシュ','ッス','ッスィ','ッシ'],
+  ['ア','エ','ヤ','イェ','オ','エ','ヨ','イェ','オ','ワ','ウェ','ウェ','ヨ','ウ','ウォ','ウェ','ウィ','ユ','ウ','ウィ','イ'],
+  ['チャ','チェ','チャ','チェ','チョ','チェ','チョ','チェ','チョ','チュァ','チュェ','チュェ','チョ','チュ','チュォ','チュェ','チュィ','チュ','チュ','チュィ','チ'],
+  ['ッチャ','ッチェ','ッチャ','ッチェ','ッチョ','ッチェ','ッチョ','ッチェ','ッチョ','ッチュァ','ッチュェ','ッチュェ','ッチョ','ッチュ','ッチュォ','ッチュェ','ッチュィ','ッチュ','ッチュ','ッチュィ','ッチ'],
+  ['チャ','チェ','チャ','チェ','チョ','チェ','チョ','チェ','チョ','チュァ','チュェ','チュェ','チョ','チュ','チュォ','チュェ','チュィ','チュ','チュ','チュィ','チ'],
+  ['カ','ケ','キャ','キェ','コ','ケ','キョ','キェ','コ','クァ','クェ','クェ','キョ','ク','クォ','クェ','クィ','キュ','ク','クィ','キ'],
+  ['タ','テ','ティャ','ティェ','ト','テ','ティョ','ティェ','ト','トゥァ','トゥェ','トゥェ','ティョ','トゥ','トゥォ','トゥェ','トゥィ','テュ','トゥ','トゥィ','ティ'],
+  ['パ','ペ','ピャ','ピェ','ポ','ペ','ピョ','ピェ','ポ','プァ','プェ','プェ','ピョ','プ','プォ','プェ','プィ','ピュ','プ','プィ','ピ'],
+  ['ハ','ヘ','ヒャ','ヒェ','ホ','ヘ','ヒョ','ヒェ','ホ','ファ','フェ','フェ','ヒョ','フ','フォ','フェ','フィ','ヒュ','フ','フィ','ヒ']];
+  return cBase[cho]?.[jung]||(CHO_K[cho]+JUNG_K[jung]);
+}
+function hangulToKatakana(text){
+  let result='';
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];const d=decomposeHangul(ch);
+    if(!d){result+=ch;continue}
+    result+=choJungToKana(d.cho,d.jung);
+    if(d.jong>0)result+=JONG_K[d.jong];
+  }
+  return result;
+}
+function splitKoreanWord(txt){
+  // Don't split single char or very short
+  if(txt.length<=1||!isHangul(txt.charAt(0)))return[{text:txt,pos:'noun',meaning:''}];
+  // Try particle split (from end)
+  for(const rule of PARTICLES){
+    if(txt.length>rule.p.length&&txt.endsWith(rule.p)){
+      const stem=txt.slice(0,-rule.p.length);
+      if(stem.length>=1)return[{text:stem,pos:'noun',meaning:''},{text:rule.p,pos:'particle',meaning:rule.m}];
+    }
+  }
+  // Try ending split
+  for(const rule of ENDINGS){
+    if(txt.length>rule.p.length&&txt.endsWith(rule.p)){
+      const stem=txt.slice(0,-rule.p.length);
+      if(stem.length>=1)return[{text:stem,pos:'verb',meaning:''},{text:rule.p,pos:'ending',meaning:rule.m}];
+    }
+  }
+  return[{text:txt,pos:'noun',meaning:''}];
+}
+function splitLineWords(line){
+  const parts=line.trim().split(/\s+/);
+  const result=[];
+  for(const p of parts){
+    if(/^[a-zA-Z''?!.,\-]+$/.test(p)){result.push({text:p,reading:'',meaning:'',pos:'eng',time:null})}
+    else{const splits=splitKoreanWord(p);for(const s of splits){result.push({text:s.text,reading:hangulToKatakana(s.text),meaning:s.meaning,pos:s.pos,time:null})}}
+  }
+  return result;
+}
+function doPaste(mode){
+  const t=document.getElementById('pasteArea').value.trim();if(!t)return;
+  const ls=t.split('\n').filter(l=>l.trim());
+  const newLines=ls.map(l=>({time:null,translation:'',words:splitLineWords(l)}));
+  if(mode==='append'){songs[curSong].lines=songs[curSong].lines.concat(newLines)}
+  else{songs[curSong].lines=newLines}
+  save();closeM();editLineIdx=editWordIdx=null;renderAll();
+  const modeText=mode==='append'?'追加':'上書き';
+  alert(`${ls.length}行を${modeText}しました！\n助詞（는/을/에 等）は自動分離済み。\n歌詞編集タブで確認・修正してください。`)}
+function closeM(){document.getElementById('modalRoot').innerHTML=''}
+
+// Timing
+function setTimingMode(m){timingMode=m;document.querySelectorAll('.sub-tab').forEach((el,i)=>el.classList.toggle('active',i===(m==='line'?0:1)));renderTimingContent()}
+function renderTimingContent(){const c=document.getElementById('timingContent');if(timingMode==='line')renderLT(c);else renderWT(c)}
+
+function renderLT(c){
+  const s=songs[curSong];
+  c.innerHTML=s.lines.map((l,i)=>{
+    const prev=l.words.map(w=>w.text).join(' ');const ts=l.time!==null?fmt(l.time,true):'';
+    return `<div class="t-line"><span class="t-text">${prev}</span><input class="t-time-input" value="${ts}" placeholder="--:--" onchange="setLT(${i},this.value)" inputmode="decimal"><button class="t-btn" onclick="tapLT(${i})">TAP</button><button class="t-btn" onclick="clrLT(${i})" style="color:#ef4444;border-color:#ef4444">×</button></div>`}).join('')+`<div class="btn-row" style="margin-top:8px"><button class="btn-s dan" onclick="clrAllLT()">全リセット</button></div>`}
+
+function renderWT(c){
+  const s=songs[curSong];let h='';
+  s.lines.forEach((l,i)=>{
+    const prev=l.words.map(w=>w.text).join(' ');
+    const isOpen=wtOpenLines.has(i);
+    h+=`<div class="e-card" style="cursor:pointer"><div onclick="toggleWTLine(${i})" style="font-size:12px;padding:2px 0"><span style="color:var(--accent)">${isOpen?'▾':'▸'}</span> #${i+1} ${prev}</div>`;
+    if(isOpen){
+      h+=`<div style="margin-top:6px">`;
+      l.words.forEach((w,j)=>{const ts=w.time!==null?fmt(w.time,true):'';
+        h+=`<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><span class="pos-${w.pos}" style="flex:1;font-size:11px"><span class="word-text" style="font-size:12px;padding:2px 5px">${w.text}</span></span><input class="t-time-input" value="${ts}" placeholder="--:--" onchange="setWT(${i},${j},this.value)" inputmode="decimal" style="width:50px"><button class="t-btn" onclick="tapWT(${i},${j})">TAP</button><button class="t-btn" onclick="clrWT(${i},${j})" style="color:#ef4444;border-color:#ef4444;padding:3px 5px">×</button></div>`});
+      h+=`</div>`}
+    h+=`</div>`});
+  c.innerHTML=h}
+
+let tapTimer=null;
+function deferRender(){clearTimeout(tapTimer);tapTimer=setTimeout(()=>{save();renderTimingContent()},300)}
+function tapLT(i){if(!audio.src)return alert('先にMP3を読み込んでね');songs[curSong].lines[i].time=audio.currentTime;deferRender()}
+function setLT(i,v){songs[curSong].lines[i].time=parseT(v);save();renderTimingContent()}
+function clrLT(i){songs[curSong].lines[i].time=null;save();renderTimingContent()}
+function clrAllLT(){songs[curSong].lines.forEach(l=>l.time=null);save();renderTimingContent();renderLyrics()}
+let wtOpenLines=new Set();
+function toggleWTLine(i){if(wtOpenLines.has(i))wtOpenLines.delete(i);else wtOpenLines.add(i);renderTimingContent()}
+function tapWT(i,j){if(!audio.src)return alert('先にMP3を読み込んでね');songs[curSong].lines[i].words[j].time=audio.currentTime;deferRender()}
+function setWT(i,j,v){songs[curSong].lines[i].words[j].time=parseT(v);save();renderTimingContent()}
+function clrWT(i,j){songs[curSong].lines[i].words[j].time=null;save();renderTimingContent()}
+function skip(sec){if(audio.src)audio.currentTime=Math.max(0,Math.min(audio.duration||0,audio.currentTime+sec))}
+function seekToLine(i){const t=songs[curSong].lines[i]?.time;if(t!==null&&audio.src){audio.currentTime=t;if(audio.paused){audio.play();document.getElementById('playBtn').textContent='⏸'}}}
+function parseT(v){if(!v||v==='--:--')return null;if(v.includes(':')){const[m,s]=v.split(':');return parseInt(m)*60+parseFloat(s)}return parseFloat(v)||null}
+
+// Songs
+function renderSongList(){
+  document.getElementById('songList').innerHTML=songs.map((s,i)=>`<div class="song-item ${i===curSong?'current':''}" onclick="selSong(${i})"><span class="s-name">${s.title} — ${s.artist}</span></div>`).join('');
+  checkMP3()}
+function selSong(i){openSong(i)}
+function exportAllData(){
+  const song=songs[curSong];
+  if(!song){document.getElementById('exportStatus').textContent='曲を選択してください';return}
+  const data={songId:song.id,title:song.title,artist:song.artist,lines:song.lines.map((line,i)=>({
+    line:i+1,time:line.time,translation:line.translation||'',
+    words:line.words.map(w=>({text:w.text,reading:w.reading||'',meaning:w.meaning||'',pos:w.pos||'noun',time:w.time}))}))};
+  const txt=JSON.stringify(data);
+  navigator.clipboard.writeText(txt).then(()=>{
+    document.getElementById('exportStatus').textContent='✅ コピーしました！Claudeに貼り付けてね';
+  }).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    document.getElementById('exportStatus').textContent='✅ コピーしました！Claudeに貼り付けてね'})}
+
+function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');document.getElementById('tab-'+tab).style.display='block';if(tab==='timing')renderTimingContent();if(tab==='edit')renderEditor();if(tab==='songs'){renderSongList();checkMP3()}}
+function fmt(s,precise){if(s==null)return'0:00';const m=Math.floor(s/60),sc=Math.floor(s%60),cs=Math.floor((s%1)*100);return precise?m+':'+(sc<10?'0':'')+sc+'.'+( cs<10?'0':'')+cs:m+':'+(sc<10?'0':'')+sc}
+function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+
+init();
+</script>
+</body>
+</html>
