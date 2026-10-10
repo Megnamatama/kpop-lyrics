@@ -141,51 +141,50 @@ details[open] summary::before{content:'▾ '}
       <div class="legend" id="legend"></div>
       <div class="lyrics-container" id="lyricsDisplay"></div>
     </div>
-  </div>
-  <div class="tab-content" id="tab-edit" style="display:none">
-    <div class="section-pad">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <h3 style="margin:0">歌詞ライン</h3>
-        <div class="btn-row">
-          <button class="btn-s pri" onclick="showPasteModal()">📋 貼り付け</button>
-          <button class="btn-s" onclick="addNewLine()">＋ 行追加</button>
+    <div class="tab-content" id="tab-edit" style="display:none">
+      <div class="section-pad">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h3 style="margin:0">歌詞ライン</h3>
+          <div class="btn-row">
+            <button class="btn-s pri" onclick="showPasteModal()">📋 貼り付け</button>
+            <button class="btn-s" onclick="addNewLine()">＋ 行追加</button>
+          </div>
+        </div>
+        <div id="editLines"></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-timing" style="display:none">
+      <div class="section-pad">
+        <div class="sub-tabs">
+          <div class="sub-tab active" onclick="setTimingMode('line')">行タイミング</div>
+          <div class="sub-tab" onclick="setTimingMode('word')">単語タイミング</div>
+        </div>
+        <p style="font-size:10px;color:var(--text-dim);margin-bottom:6px">MP3再生中にTAPを押すと現在位置を記録。手入力も可（例: 1:23）</p>
+        <div id="timingContent"></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-songs" style="display:none">
+      <div class="section-pad">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0">曲リスト</h3>
+          <button class="back-btn" onclick="goHome()">← ホームに戻る</button>
+        </div>
+        <div id="songList" style="margin-top:8px"></div>
+        <button class="btn-s" style="margin-top:8px;width:100%;padding:10px" onclick="loadFromSheets()">🔄 スプレッドシートから再読み込み</button>
+        <p style="font-size:10px;color:var(--text-dim);margin-top:6px">新しい曲はスプレッドシートに追加すると反映されます</p>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <h3>データ共有</h3>
+          <p style="font-size:10px;color:var(--text-dim);margin-top:4px;margin-bottom:8px">歌詞・タイムスタンプの編集内容をコピーして、Claudeに貼り付けるとスプレッドシートに反映→家族にも共有されます</p>
+          <button class="btn-s pri" style="width:100%;padding:10px" onclick="exportAllData()">📋 この曲のデータをコピー</button>
+          <div id="exportStatus" style="font-size:11px;color:var(--accent);margin-top:6px"></div>
+        </div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <h3>MP3の状態</h3>
+          <div id="mp3Status" style="font-size:11px;color:var(--text-dim);margin-top:6px"></div>
         </div>
       </div>
-      <div id="editLines"></div>
     </div>
   </div>
-  <div class="tab-content" id="tab-timing" style="display:none">
-    <div class="section-pad">
-      <div class="sub-tabs">
-        <div class="sub-tab active" onclick="setTimingMode('line')">行タイミング</div>
-        <div class="sub-tab" onclick="setTimingMode('word')">単語タイミング</div>
-      </div>
-      <p style="font-size:10px;color:var(--text-dim);margin-bottom:6px">MP3再生中にTAPを押すと現在位置を記録。手入力も可（例: 1:23）</p>
-      <div id="timingContent"></div>
-    </div>
-  </div>
-  <div class="tab-content" id="tab-songs" style="display:none">
-    <div class="section-pad">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3 style="margin:0">曲リスト</h3>
-        <button class="back-btn" onclick="goHome()">← ホームに戻る</button>
-      </div>
-      <div id="songList" style="margin-top:8px"></div>
-      <button class="btn-s" style="margin-top:8px;width:100%;padding:10px" onclick="loadFromSheets()">🔄 スプレッドシートから再読み込み</button>
-      <p style="font-size:10px;color:var(--text-dim);margin-top:6px">新しい曲はスプレッドシートに追加すると反映されます</p>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-        <h3>データ共有</h3>
-        <p style="font-size:10px;color:var(--text-dim);margin-top:4px;margin-bottom:8px">歌詞・タイムスタンプの編集内容をコピーして、Claudeに貼り付けるとスプレッドシートに反映→家族にも共有されます</p>
-        <button class="btn-s pri" style="width:100%;padding:10px" onclick="exportAllData()">📋 この曲のデータをコピー</button>
-        <div id="exportStatus" style="font-size:11px;color:var(--accent);margin-top:6px"></div>
-      </div>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-        <h3>MP3の状態</h3>
-        <div id="mp3Status" style="font-size:11px;color:var(--text-dim);margin-top:6px"></div>
-      </div>
-    </div>
-  </div>
-</div>
 <div class="player-bar">
   <div id="playerUI">
     <div class="progress-wrap" id="progressWrap">
@@ -567,7 +566,7 @@ function exportAllData(){
     const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
     document.getElementById('exportStatus').textContent='✅ コピーしました！Claudeに貼り付けてね'})}
 
-function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');document.getElementById('tab-'+tab).style.display='block';if(tab==='timing')renderTimingContent();if(tab==='edit')renderEditor();if(tab==='songs'){renderSongList();checkMP3()}}
+function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');document.getElementById('tab-'+tab).style.display='block';if(tab==='timing')renderTimingContent();if(tab==='edit')renderEditor();if(tab==='songs'){renderSongList();checkMP3()}window.scrollTo(0,0)}
 function fmt(s,precise){if(s==null)return'0:00';const m=Math.floor(s/60),sc=Math.floor(s%60),cs=Math.floor((s%1)*100);return precise?m+':'+(sc<10?'0':'')+sc+'.'+( cs<10?'0':'')+cs:m+':'+(sc<10?'0':'')+sc}
 function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 
