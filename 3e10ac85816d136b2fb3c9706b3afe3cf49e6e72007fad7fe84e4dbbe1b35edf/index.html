@@ -21,6 +21,7 @@
     --bg: #f5f5f7; --bg2: #fff; --bg3: #eeeef2;
     --text: #1a1a2e; --text-dim: #6b6b7b; --border: #d4d4dd;
   }
+  :root:not([data-theme="dark"]) .lyric-line{background:rgba(255,255,255,.7)}
 }
 :root[data-theme="dark"] {
   --bg: #0d0d12; --bg2: #16161e; --bg3: #1e1e2a;
@@ -39,7 +40,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .legend{display:flex;flex-wrap:wrap;gap:5px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:37px;z-index:40}
 .legend-item{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:600}
 .lyrics-container{padding:6px 10px}
-.lyric-line{background:var(--bg2);border-radius:10px;padding:10px;margin-bottom:6px;border:1px solid var(--border);transition:border-color .3s,box-shadow .3s}
+.lyric-line{background:rgba(22,22,30,.7);border-radius:10px;padding:10px;margin-bottom:6px;border:1px solid var(--border);transition:border-color .3s,box-shadow .3s;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .lyric-line.active{border-color:var(--accent);box-shadow:0 0 12px rgba(167,139,250,.15)}
 .lyric-line.past{opacity:.45}
 .words-row{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px}
@@ -373,7 +374,7 @@ function goHome(){
   audio.pause();document.getElementById('playBtn').textContent='▶';
   hideMV();renderHome()}
 
-function showMV(){hideMV();const url=songs[curSong].videoUrl;if(!url)return;const d=document.createElement('div');d.id='mvBg';d.className='mv-bg';d.innerHTML=`<video src="${url}" autoplay muted loop playsinline></video>`;document.body.appendChild(d)}
+function showMV(){hideMV();const url=songs[curSong].videoUrl;if(!url)return;const d=document.createElement('div');d.id='mvBg';d.className='mv-bg';d.innerHTML=`<video src="${url}" muted loop playsinline preload="auto"></video>`;document.body.appendChild(d)}
 function hideMV(){const el=document.getElementById('mvBg');if(el)el.remove()}
 
 function renderLegend(){document.getElementById('legend').innerHTML=Object.entries(POS).map(([k,v])=>`<span class="legend-item${hiddenPos.has(k)?' off':''}" style="background:${v.bg};color:${v.c}" onclick="togglePosFilter('${k}')">${v.l}</span>`).join('')}
@@ -395,7 +396,7 @@ function animLoop(){
   requestAnimationFrame(animLoop)}
 requestAnimationFrame(animLoop);
 audio.addEventListener('loadedmetadata',()=>document.getElementById('totalTime').textContent=fmt(audio.duration,true));
-audio.addEventListener('ended',()=>{if(loopOn){audio.currentTime=0;audio.play()}else{document.getElementById('playBtn').textContent='▶'}});
+audio.addEventListener('ended',()=>{if(loopOn){audio.currentTime=0;audio.play();const v=getMV();if(v){v.currentTime=0;v.play().catch(()=>{})}}else{syncMV(false);document.getElementById('playBtn').textContent='▶'}});
 
 function syncHL(t){
   const s=songs[curSong];let aL=-1;
@@ -421,7 +422,9 @@ pw.addEventListener('touchstart',e=>{drag=true;seekE(e,true)},{passive:true});
 pw.addEventListener('touchmove',e=>{if(drag)seekE(e,true)},{passive:true});
 pw.addEventListener('touchend',()=>{drag=false;setTimeout(hideTooltip,500)});
 
-function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){audio.play();document.getElementById('playBtn').textContent='⏸'}else{audio.pause();document.getElementById('playBtn').textContent='▶'}}
+function getMV(){const el=document.getElementById('mvBg');return el?el.querySelector('video'):null}
+function syncMV(playing){const v=getMV();if(!v)return;if(playing){v.play().catch(()=>{})}else{v.pause()}}
+function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}else{audio.pause();syncMV(false);document.getElementById('playBtn').textContent='▶'}}
 function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));audio.playbackRate=speeds[speedIdx];document.getElementById('speedDisplay').textContent=speeds[speedIdx]+'×'}
 
 function toggleOpt(){document.getElementById('optPanel').classList.toggle('open')}
@@ -602,7 +605,7 @@ function tapWT(i,j){if(!audio.src)return alert('先にMP3を読み込んでね')
 function setWT(i,j,v){songs[curSong].lines[i].words[j].time=parseT(v);save();renderTimingContent()}
 function clrWT(i,j){songs[curSong].lines[i].words[j].time=null;save();renderTimingContent()}
 function skip(sec){if(audio.src)audio.currentTime=Math.max(0,Math.min(audio.duration||0,audio.currentTime+sec))}
-function seekToLine(i){const t=songs[curSong].lines[i]?.time;if(t!==null&&audio.src){audio.currentTime=t;if(audio.paused){audio.play();document.getElementById('playBtn').textContent='⏸'}}}
+function seekToLine(i){const t=songs[curSong].lines[i]?.time;if(t!==null&&audio.src){audio.currentTime=t;if(audio.paused){audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}}}
 function parseT(v){if(!v||v==='--:--')return null;if(v.includes(':')){const[m,s]=v.split(':');return parseInt(m)*60+parseFloat(s)}return parseFloat(v)||null}
 
 // Songs
