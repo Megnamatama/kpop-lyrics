@@ -27,8 +27,8 @@
   --text: #e8e6e3; --text-dim: #8a8a9a; --border: #2a2a3a;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-padding-top:var(--safe-top)}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:var(--safe-top);overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent}
 .app{max-width:480px;margin:0 auto;padding-bottom:160px}
 .header{background:linear-gradient(135deg,#7c3aed 0%,#a78bfa 50%,#f472b6 100%);padding:18px 16px 14px;text-align:center}
 .header h1{font-size:18px;font-weight:800;color:#fff;letter-spacing:1px}
@@ -153,17 +153,17 @@ details[open] summary::before{content:'▾ '}
     </div>
   </div>
   <!-- PLAYER screen (hidden initially) -->
-  <div class="tabs" id="playerTabs" style="position:relative;display:none">
-    <button class="tab active" data-tab="play" onclick="switchTab('play')">再生</button>
-    <button class="tab" data-tab="songs" onclick="switchTab('songs')">曲リスト</button>
-    <button class="menu-btn" onclick="toggleMenu()">⋮</button>
-    <div class="menu-drop" id="menuDrop">
-      <button class="menu-item" onclick="switchTab('edit');closeMenu()">📝 歌詞編集</button>
-      <button class="menu-item" onclick="switchTab('timing');closeMenu()">⏱ タイミング</button>
-      <button class="menu-item" onclick="exportAllData();closeMenu()">📋 データコピー</button>
-    </div>
-  </div>
   <div id="playerScreen" style="display:none">
+    <div class="tabs" style="position:relative">
+      <button class="tab active" data-tab="play" onclick="switchTab('play')">再生</button>
+      <button class="tab" data-tab="songs" onclick="switchTab('songs')">曲リスト</button>
+      <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+      <div class="menu-drop" id="menuDrop">
+        <button class="menu-item" onclick="switchTab('edit');closeMenu()">📝 歌詞編集</button>
+        <button class="menu-item" onclick="switchTab('timing');closeMenu()">⏱ タイミング</button>
+        <button class="menu-item" onclick="exportAllData();closeMenu()">📋 データコピー</button>
+      </div>
+    </div>
     <div class="tab-content" id="tab-play">
       <div class="legend" id="legend"></div>
       <div class="mv-panel" id="mvPanel" style="display:none">
@@ -376,12 +376,10 @@ function renderHome(){
 function openSong(i){
   curSong=i;editLineIdx=editWordIdx=null;curLine=curWord=-1;
   document.getElementById('homeScreen').style.display='none';
-  document.getElementById('playerTabs').style.display='flex';
   document.getElementById('playerScreen').style.display='block';
   showMV();renderAll();tryLoadAudio();switchTab('play')}
 
 function goHome(){
-  document.getElementById('playerTabs').style.display='none';
   document.getElementById('playerScreen').style.display='none';
   document.getElementById('homeScreen').style.display='block';
   document.getElementById('songTitle').textContent='';
