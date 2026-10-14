@@ -353,7 +353,7 @@ function save(){saveTimings()}
 
 function init(){renderLegend();loadFromSheets()}
 
-function renderAll(){if(!songs.length)return;renderLyrics();renderEditor();renderTimingContent();renderSongList();updTitle()}
+function renderAll(){if(!songs.length)return;renderLyrics();renderEditor();renderTimingContent();renderSongList();updTitle();showMV()}
 function updTitle(){document.getElementById('songTitle').textContent=`♪ ${songs[curSong].title} — ${songs[curSong].artist}`}
 
 function renderHome(){
