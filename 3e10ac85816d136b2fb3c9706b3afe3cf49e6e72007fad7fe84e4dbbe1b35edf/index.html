@@ -622,7 +622,7 @@ function exportAllData(){
     const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
     alert('✅ コピーしました！Claudeに貼り付けてね')})}
 
-function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab)t.classList.toggle('active',t.dataset.tab===tab)});document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');document.getElementById('tab-'+tab).style.display='block';if(tab==='timing')renderTimingContent();if(tab==='edit')renderEditor();if(tab==='songs'){renderSongList();checkMP3()}window.scrollTo(0,0)}
+function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab)t.classList.toggle('active',t.dataset.tab===tab)});document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');document.getElementById('tab-'+tab).style.display='block';if(tab!=='play'){const wrap=document.getElementById('mvVideoWrap');if(wrap&&wrap.classList.contains('open')){wrap.classList.remove('open');const v=wrap.querySelector('video');if(v)v.pause();const toggle=document.querySelector('.mv-toggle');if(toggle)toggle.style.display='';document.getElementById('mvToggleIcon').textContent='▸'}}if(tab==='timing')renderTimingContent();if(tab==='edit')renderEditor();if(tab==='songs'){renderSongList();checkMP3()}window.scrollTo(0,0)}
 function fmt(s,precise){if(s==null)return'0:00';const m=Math.floor(s/60),sc=Math.floor(s%60),cs=Math.floor((s%1)*100);return precise?m+':'+(sc<10?'0':'')+sc+'.'+( cs<10?'0':'')+cs:m+':'+(sc<10?'0':'')+sc}
 function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 
