@@ -40,14 +40,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .legend-item{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:600}
 .lyrics-container{padding:6px 10px}
 .lyric-line{background:var(--bg2);border-radius:10px;padding:10px;margin-bottom:6px;border:1px solid var(--border);transition:border-color .3s,box-shadow .3s}
-.lyric-line.active{border-color:var(--accent);box-shadow:0 0 12px rgba(167,139,250,.15)}
-.lyric-line.past{opacity:.45}
+.lyric-line.active{border-color:var(--accent);box-shadow:0 0 12px rgba(167,139,250,.25);opacity:1}
+.lyric-line.future{opacity:.35}
+.lyric-line.past{opacity:.25}
 .words-row{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:4px}
 .word-block{text-align:center;padding:3px 1px;min-width:20px;transition:transform .15s,filter .15s}
-.word-block.word-active{transform:scale(1.12);filter:brightness(1.4)}
-.word-reading{font-size:9px;color:var(--text-dim);margin-bottom:1px;line-height:1.2}
-.word-text{font-size:16px;font-weight:700;padding:3px 6px;border-radius:5px;display:inline-block;line-height:1.3}
-.word-meaning{font-size:8px;margin-top:1px;line-height:1.2}
+.word-block.word-active .word-text{box-shadow:0 0 8px 2px currentColor;transition:box-shadow .15s}
+.word-reading{font-size:10px;color:var(--text-dim);margin-bottom:1px;line-height:1.2}
+.word-text{font-size:18px;font-weight:700;padding:3px 6px;border-radius:5px;display:inline-block;line-height:1.3}
+.word-meaning{font-size:9px;margin-top:1px;line-height:1.2}
 .pos-noun .word-text{background:rgba(244,114,182,.2);color:var(--noun)}.pos-noun .word-meaning{color:var(--noun)}
 .pos-particle .word-text{background:rgba(96,165,250,.2);color:var(--particle)}.pos-particle .word-meaning{color:var(--particle)}
 .pos-verb .word-text{background:rgba(52,211,153,.2);color:var(--verb)}.pos-verb .word-meaning{color:var(--verb)}
@@ -429,7 +430,7 @@ function syncHL(t){
   for(let i=s.lines.length-1;i>=0;i--){if(s.lines[i].time!==null&&t>=s.lines[i].time){aL=i;break}}
   let aW=-1;
   if(aL>=0){const ws=s.lines[aL].words;for(let j=ws.length-1;j>=0;j--){if(ws[j].time!==null&&t>=ws[j].time){aW=j;break}}}
-  if(aL!==curLine){curLine=aL;document.querySelectorAll('.lyric-line').forEach((el,i)=>{el.classList.remove('active','past');if(i===aL){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'center'})}else if(i<aL)el.classList.add('past')})}
+  if(aL!==curLine){curLine=aL;document.querySelectorAll('.lyric-line').forEach((el,i)=>{el.classList.remove('active','past','future');if(i===aL){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'center'})}else if(i<aL){el.classList.add('past')}else{el.classList.add('future')}})}
   document.querySelectorAll('.word-block').forEach(el=>el.classList.remove('word-active'));
   if(aL>=0&&aW>=0){const el=document.getElementById(`wb-${aL}-${aW}`);if(el)el.classList.add('word-active')}
   curWord=aW}
@@ -451,7 +452,7 @@ pw.addEventListener('touchend',()=>{drag=false;setTimeout(hideTooltip,500)});
 function getMV(){const el=document.getElementById('mvVideoWrap');return el?el.querySelector('video'):null}
 function syncMV(playing){const v=getMV();if(!v)return;const wrap=document.getElementById('mvVideoWrap');if(!wrap.classList.contains('open'))return;if(playing){const target=audio.currentTime+songs[curSong].videoOffset;if(target<0){v.currentTime=0;v.pause()}else{v.currentTime=target;v.play().catch(()=>{})}}else{v.pause()}}
 function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}else{audio.pause();syncMV(false);document.getElementById('playBtn').textContent='▶'}}
-function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));audio.playbackRate=speeds[speedIdx];document.getElementById('speedDisplay').textContent=speeds[speedIdx]+'×'}
+function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));audio.playbackRate=speeds[speedIdx];const v=getMV();if(v)v.playbackRate=speeds[speedIdx];document.getElementById('speedDisplay').textContent=speeds[speedIdx]+'×'}
 
 function toggleOpt(){document.getElementById('optPanel').classList.toggle('open')}
 
