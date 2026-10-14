@@ -8,7 +8,7 @@
 :root {
   --bg: #0d0d12; --bg2: #16161e; --bg3: #1e1e2a;
   --text: #e8e6e3; --text-dim: #8a8a9a; --accent: #a78bfa; --accent2: #7c3aed;
-  --noun: #f472b6; --particle: #3b82f6; --verb: #34d399; --adj: #fbbf24;
+  --noun: #f472b6; --particle: #4d94ff; --verb: #34d399; --adj: #fbbf24;
   --adv: #fb923c; --pronoun: #38bdf8; --ending: #a78bfa; --eng: #94a3b8;
   --border: #2a2a3a;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -50,7 +50,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .word-text{font-size:18px;font-weight:700;padding:3px 6px;border-radius:5px;display:inline-block;line-height:1.3}
 .word-meaning{font-size:9px;margin-top:1px;line-height:1.2}
 .pos-noun .word-text{background:rgba(244,114,182,.2);color:var(--noun)}.pos-noun .word-meaning{color:var(--noun)}
-.pos-particle .word-text{background:rgba(59,130,246,.2);color:var(--particle)}.pos-particle .word-meaning{color:var(--particle)}
+.pos-particle .word-text{background:rgba(77,148,255,.2);color:var(--particle)}.pos-particle .word-meaning{color:var(--particle)}
 .pos-verb .word-text{background:rgba(52,211,153,.2);color:var(--verb)}.pos-verb .word-meaning{color:var(--verb)}
 .pos-adj .word-text{background:rgba(251,191,36,.2);color:var(--adj)}.pos-adj .word-meaning{color:var(--adj)}
 .pos-adv .word-text{background:rgba(251,146,60,.2);color:var(--adv)}.pos-adv .word-meaning{color:var(--adv)}
@@ -153,17 +153,17 @@ details[open] summary::before{content:'▾ '}
     </div>
   </div>
   <!-- PLAYER screen (hidden initially) -->
-  <div id="playerScreen" style="display:none">
-    <div class="tabs" style="position:relative">
-      <button class="tab active" data-tab="play" onclick="switchTab('play')">再生</button>
-      <button class="tab" data-tab="songs" onclick="switchTab('songs')">曲リスト</button>
-      <button class="menu-btn" onclick="toggleMenu()">⋮</button>
-      <div class="menu-drop" id="menuDrop">
-        <button class="menu-item" onclick="switchTab('edit');closeMenu()">📝 歌詞編集</button>
-        <button class="menu-item" onclick="switchTab('timing');closeMenu()">⏱ タイミング</button>
-        <button class="menu-item" onclick="exportAllData();closeMenu()">📋 データコピー</button>
-      </div>
+  <div class="tabs" id="playerTabs" style="position:relative;display:none">
+    <button class="tab active" data-tab="play" onclick="switchTab('play')">再生</button>
+    <button class="tab" data-tab="songs" onclick="switchTab('songs')">曲リスト</button>
+    <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+    <div class="menu-drop" id="menuDrop">
+      <button class="menu-item" onclick="switchTab('edit');closeMenu()">📝 歌詞編集</button>
+      <button class="menu-item" onclick="switchTab('timing');closeMenu()">⏱ タイミング</button>
+      <button class="menu-item" onclick="exportAllData();closeMenu()">📋 データコピー</button>
     </div>
+  </div>
+  <div id="playerScreen" style="display:none">
     <div class="tab-content" id="tab-play">
       <div class="legend" id="legend"></div>
       <div class="mv-panel" id="mvPanel" style="display:none">
@@ -376,10 +376,12 @@ function renderHome(){
 function openSong(i){
   curSong=i;editLineIdx=editWordIdx=null;curLine=curWord=-1;
   document.getElementById('homeScreen').style.display='none';
+  document.getElementById('playerTabs').style.display='flex';
   document.getElementById('playerScreen').style.display='block';
   showMV();renderAll();tryLoadAudio();switchTab('play')}
 
 function goHome(){
+  document.getElementById('playerTabs').style.display='none';
   document.getElementById('playerScreen').style.display='none';
   document.getElementById('homeScreen').style.display='block';
   document.getElementById('songTitle').textContent='';
