@@ -8,7 +8,7 @@
 :root {
   --bg: #0d0d12; --bg2: #16161e; --bg3: #1e1e2a;
   --text: #e8e6e3; --text-dim: #8a8a9a; --accent: #a78bfa; --accent2: #7c3aed;
-  --noun: #f472b6; --particle: #4d94ff; --verb: #34d399; --adj: #fbbf24;
+  --noun: #f472b6; --particle: #6ba3ff; --verb: #34d399; --adj: #fbbf24;
   --adv: #fb923c; --pronoun: #38bdf8; --ending: #a78bfa; --eng: #94a3b8;
   --border: #2a2a3a;
   --safe-top: env(safe-area-inset-top, 0px);
@@ -50,7 +50,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .word-text{font-size:18px;font-weight:700;padding:3px 6px;border-radius:5px;display:inline-block;line-height:1.3}
 .word-meaning{font-size:9px;margin-top:1px;line-height:1.2}
 .pos-noun .word-text{background:rgba(244,114,182,.2);color:var(--noun)}.pos-noun .word-meaning{color:var(--noun)}
-.pos-particle .word-text{background:rgba(77,148,255,.2);color:var(--particle)}.pos-particle .word-meaning{color:var(--particle)}
+.pos-particle .word-text{background:rgba(107,163,255,.2);color:var(--particle)}.pos-particle .word-meaning{color:var(--particle)}
 .pos-verb .word-text{background:rgba(52,211,153,.2);color:var(--verb)}.pos-verb .word-meaning{color:var(--verb)}
 .pos-adj .word-text{background:rgba(251,191,36,.2);color:var(--adj)}.pos-adj .word-meaning{color:var(--adj)}
 .pos-adv .word-text{background:rgba(251,146,60,.2);color:var(--adv)}.pos-adv .word-meaning{color:var(--adv)}
@@ -119,7 +119,7 @@ details[open] summary::before{content:'▾ '}
 .ab-indicator{font-size:9px;color:var(--accent);font-variant-numeric:tabular-nums}
 .opt-toggle{background:none;border:none;color:var(--text-dim);font-size:10px;cursor:pointer;padding:2px 6px}
 .menu-btn{background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:11px 12px;letter-spacing:1px}
-.menu-drop{position:absolute;right:4px;top:38px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;z-index:55;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:none}
+.menu-drop{position:absolute;right:0;top:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;z-index:55;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:none}
 .menu-drop.open{display:block}
 .menu-item{display:block;width:100%;padding:10px 14px;text-align:left;font-size:12px;color:var(--text);background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer}
 .menu-item:last-child{border-bottom:none}
@@ -154,14 +154,16 @@ details[open] summary::before{content:'▾ '}
   </div>
   <!-- PLAYER screen (hidden initially) -->
   <div id="playerScreen" style="display:none">
-    <div class="tabs" style="position:relative">
+    <div class="tabs">
       <button class="tab active" data-tab="play" onclick="switchTab('play')">再生</button>
       <button class="tab" data-tab="songs" onclick="switchTab('songs')">曲リスト</button>
-      <button class="menu-btn" onclick="toggleMenu()">⋮</button>
-      <div class="menu-drop" id="menuDrop">
-        <button class="menu-item" onclick="switchTab('edit');closeMenu()">📝 歌詞編集</button>
-        <button class="menu-item" onclick="switchTab('timing');closeMenu()">⏱ タイミング</button>
-        <button class="menu-item" onclick="exportAllData();closeMenu()">📋 データコピー</button>
+      <div style="position:relative">
+        <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+        <div class="menu-drop" id="menuDrop">
+          <button class="menu-item" onclick="switchTab('edit');closeMenu()">📝 歌詞編集</button>
+          <button class="menu-item" onclick="switchTab('timing');closeMenu()">⏱ タイミング</button>
+          <button class="menu-item" onclick="exportAllData();closeMenu()">📋 データコピー</button>
+        </div>
       </div>
     </div>
     <div class="tab-content" id="tab-play">
