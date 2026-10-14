@@ -118,6 +118,12 @@ details[open] summary::before{content:'▾ '}
 .loop-btn.on{color:var(--accent);border-color:var(--accent);background:rgba(167,139,250,.12)}
 .ab-indicator{font-size:9px;color:var(--accent);font-variant-numeric:tabular-nums}
 .opt-toggle{background:none;border:none;color:var(--text-dim);font-size:10px;cursor:pointer;padding:2px 6px}
+.menu-btn{background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:11px 12px;letter-spacing:1px}
+.menu-drop{position:absolute;right:4px;top:38px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;z-index:55;min-width:140px;box-shadow:0 4px 16px rgba(0,0,0,.3);display:none}
+.menu-drop.open{display:block}
+.menu-item{display:block;width:100%;padding:10px 14px;text-align:left;font-size:12px;color:var(--text);background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer}
+.menu-item:last-child{border-bottom:none}
+.menu-item:active{background:var(--bg3)}
 .opt-panel{overflow:hidden;max-height:0;transition:max-height .25s ease;margin-top:0}
 .opt-panel.open{max-height:120px;margin-top:4px}
 .word-block.pos-hidden{display:none}
@@ -148,11 +154,15 @@ details[open] summary::before{content:'▾ '}
   </div>
   <!-- PLAYER screen (hidden initially) -->
   <div id="playerScreen" style="display:none">
-    <div class="tabs">
+    <div class="tabs" style="position:relative">
       <button class="tab active" data-tab="play" onclick="switchTab('play')">再生</button>
-      <button class="tab" data-tab="edit" onclick="switchTab('edit')">歌詞編集</button>
-      <button class="tab" data-tab="timing" onclick="switchTab('timing')">タイミング</button>
-      <button class="tab" data-tab="songs" onclick="switchTab('songs')">曲管理</button>
+      <button class="tab" data-tab="songs" onclick="switchTab('songs')">曲リスト</button>
+      <button class="menu-btn" onclick="toggleMenu()">⋮</button>
+      <div class="menu-drop" id="menuDrop">
+        <button class="menu-item" onclick="switchTab('edit');closeMenu()">📝 歌詞編集</button>
+        <button class="menu-item" onclick="switchTab('timing');closeMenu()">⏱ タイミング</button>
+        <button class="menu-item" onclick="exportAllData();closeMenu()">📋 データコピー</button>
+      </div>
     </div>
     <div class="tab-content" id="tab-play">
       <div class="legend" id="legend"></div>
@@ -194,15 +204,10 @@ details[open] summary::before{content:'▾ '}
         <button class="btn-s" style="margin-top:8px;width:100%;padding:10px" onclick="loadFromSheets()">🔄 スプレッドシートから再読み込み</button>
         <p style="font-size:10px;color:var(--text-dim);margin-top:6px">新しい曲はスプレッドシートに追加すると反映されます</p>
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-          <h3>データ共有</h3>
-          <p style="font-size:10px;color:var(--text-dim);margin-top:4px;margin-bottom:8px">歌詞・タイムスタンプの編集内容をコピーして、Claudeに貼り付けるとスプレッドシートに反映→家族にも共有されます</p>
-          <button class="btn-s pri" style="width:100%;padding:10px" onclick="exportAllData()">📋 この曲のデータをコピー</button>
-          <div id="exportStatus" style="font-size:11px;color:var(--accent);margin-top:6px"></div>
-        </div>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
           <h3>MP3の状態</h3>
           <div id="mp3Status" style="font-size:11px;color:var(--text-dim);margin-top:6px"></div>
         </div>
+        <div id="exportStatus" style="font-size:11px;color:var(--accent);margin-top:6px;display:none"></div>
       </div>
     </div>
   </div>
@@ -389,7 +394,7 @@ function showMV(){
   document.getElementById('mvToggleIcon').textContent='▸';
   if(!url){panel.style.display='none';return}
   panel.style.display='block';
-  wrap.innerHTML=`<video src="${url}" muted loop playsinline preload="auto" onclick="this.play()"></video>`}
+  wrap.innerHTML=`<video src="${url}" muted loop playsinline preload="auto" onclick="toggleMVPanel()"></video>`}
 function hideMV(){
   const panel=document.getElementById('mvPanel');
   const wrap=document.getElementById('mvVideoWrap');
@@ -397,11 +402,17 @@ function hideMV(){
 function toggleMVPanel(){
   const wrap=document.getElementById('mvVideoWrap');
   const icon=document.getElementById('mvToggleIcon');
+  const toggle=document.querySelector('.mv-toggle');
   const isOpen=wrap.classList.toggle('open');
   icon.textContent=isOpen?'▾':'▸';
+  if(isOpen){toggle.style.display='none'}else{toggle.style.display=''}
   const v=wrap.querySelector('video');
   if(v&&isOpen&&!audio.paused){const target=audio.currentTime+songs[curSong].videoOffset;if(target>=0){v.currentTime=target;v.play().catch(()=>{})}}
   if(v&&!isOpen){v.pause()}}
+
+function toggleMenu(){document.getElementById('menuDrop').classList.toggle('open')}
+function closeMenu(){document.getElementById('menuDrop').classList.remove('open')}
+document.addEventListener('click',e=>{if(!e.target.closest('.menu-btn')&&!e.target.closest('.menu-drop'))closeMenu()})
 
 function renderLegend(){document.getElementById('legend').innerHTML=Object.entries(POS).map(([k,v])=>`<span class="legend-item${hiddenPos.has(k)?' off':''}" style="background:${v.bg};color:${v.c}" onclick="togglePosFilter('${k}')">${v.l}</span>`).join('')}
 
@@ -512,51 +523,7 @@ const ENDINGS=[
   {p:'지',m:'～でしょ'},{p:'고',m:'～して'},{p:'며',m:'～しつつ'},{p:'면',m:'～なら'},{p:'서',m:'～して'}
 ];
 function isHangul(c){const code=c.charCodeAt(0);return code>=0xAC00&&code<=0xD7AF||code>=0x3131&&code<=0x318E}
-// Hangul → Katakana converter
-const CHO=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-const JUNG=['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
-const JONG=['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-function decomposeHangul(ch){const c=ch.charCodeAt(0);if(c<0xAC00||c>0xD7AF)return null;const n=c-0xAC00;return{cho:Math.floor(n/588),jung:Math.floor((n%588)/28),jong:n%28}}
-// Initial consonant → katakana mapping (context-dependent, simplified)
-const CHO_K={0:'カ',1:'ッカ',2:'ナ',3:'タ',4:'ッタ',5:'ラ',6:'マ',7:'パ',8:'ッパ',9:'サ',10:'ッサ',11:'ア',12:'チャ',13:'ッチャ',14:'チャ',15:'カ',16:'タ',17:'パ',18:'ハ'};
-// Vowel → katakana
-const JUNG_K={0:'ア',1:'エ',2:'ヤ',3:'イェ',4:'オ',5:'エ',6:'ヨ',7:'イェ',8:'オ',9:'ワ',10:'ウェ',11:'ウェ',12:'ヨ',13:'ウ',14:'ウォ',15:'ウェ',16:'ウィ',17:'ユ',18:'ウ',19:'ウィ',20:'イ'};
-// Final consonant → katakana
-const JONG_K={0:'',1:'ク',2:'ク',3:'ク',4:'ン',5:'ン',6:'ン',7:'ッ',8:'ル',9:'ル',10:'ル',11:'ル',12:'ル',13:'ル',14:'ル',15:'ル',16:'ム',17:'プ',18:'プ',19:'ッ',20:'ッ',21:'ン',22:'ッ',23:'ッ',24:'ク',25:'ッ',26:'プ',27:'ッ'};
-// Combine initial+vowel for more natural katakana
-function choJungToKana(cho,jung){
-  // Map cho to base consonant sound
-  const cBase=[['カ','ケ','キャ','キェ','コ','ケ','キョ','キェ','コ','クァ','クェ','クェ','キョ','ク','クォ','クェ','クィ','キュ','ク','クィ','キ'],
-  ['ッカ','ッケ','ッキャ','ッキェ','ッコ','ッケ','ッキョ','ッキェ','ッコ','ックァ','ックェ','ックェ','ッキョ','ック','ックォ','ックェ','ックィ','ッキュ','ック','ックィ','ッキ'],
-  ['ナ','ネ','ニャ','ニェ','ノ','ネ','ニョ','ニェ','ノ','ヌァ','ヌェ','ヌェ','ニョ','ヌ','ヌォ','ヌェ','ヌィ','ニュ','ヌ','ヌィ','ニ'],
-  ['タ','テ','ティャ','ティェ','ト','テ','ティョ','ティェ','ト','トゥァ','トゥェ','トゥェ','ティョ','トゥ','トゥォ','トゥェ','トゥィ','テュ','トゥ','トゥィ','ティ'],
-  ['ッタ','ッテ','ッティャ','ッティェ','ット','ッテ','ッティョ','ッティェ','ット','ットゥァ','ットゥェ','ットゥェ','ッティョ','ットゥ','ットゥォ','ットゥェ','ットゥィ','ッテュ','ットゥ','ットゥィ','ッティ'],
-  ['ラ','レ','リャ','リェ','ロ','レ','リョ','リェ','ロ','ルァ','ルェ','ルェ','リョ','ル','ルォ','ルェ','ルィ','リュ','ル','ルィ','リ'],
-  ['マ','メ','ミャ','ミェ','モ','メ','ミョ','ミェ','モ','ムァ','ムェ','ムェ','ミョ','ム','ムォ','ムェ','ムィ','ミュ','ム','ムィ','ミ'],
-  ['パ','ペ','ピャ','ピェ','ポ','ペ','ピョ','ピェ','ポ','プァ','プェ','プェ','ピョ','プ','プォ','プェ','プィ','ピュ','プ','プィ','ピ'],
-  ['ッパ','ッペ','ッピャ','ッピェ','ッポ','ッペ','ッピョ','ッピェ','ッポ','ップァ','ップェ','ップェ','ッピョ','ップ','ップォ','ップェ','ップィ','ッピュ','ップ','ップィ','ッピ'],
-  ['サ','セ','シャ','シェ','ソ','セ','ショ','シェ','ソ','スァ','スェ','スェ','ショ','ス','スォ','スェ','スィ','シュ','ス','スィ','シ'],
-  ['ッサ','ッセ','ッシャ','ッシェ','ッソ','ッセ','ッショ','ッシェ','ッソ','ッスァ','ッスェ','ッスェ','ッショ','ッス','ッスォ','ッスェ','ッスィ','ッシュ','ッス','ッスィ','ッシ'],
-  ['ア','エ','ヤ','イェ','オ','エ','ヨ','イェ','オ','ワ','ウェ','ウェ','ヨ','ウ','ウォ','ウェ','ウィ','ユ','ウ','ウィ','イ'],
-  ['チャ','チェ','チャ','チェ','チョ','チェ','チョ','チェ','チョ','チュァ','チュェ','チュェ','チョ','チュ','チュォ','チュェ','チュィ','チュ','チュ','チュィ','チ'],
-  ['ッチャ','ッチェ','ッチャ','ッチェ','ッチョ','ッチェ','ッチョ','ッチェ','ッチョ','ッチュァ','ッチュェ','ッチュェ','ッチョ','ッチュ','ッチュォ','ッチュェ','ッチュィ','ッチュ','ッチュ','ッチュィ','ッチ'],
-  ['チャ','チェ','チャ','チェ','チョ','チェ','チョ','チェ','チョ','チュァ','チュェ','チュェ','チョ','チュ','チュォ','チュェ','チュィ','チュ','チュ','チュィ','チ'],
-  ['カ','ケ','キャ','キェ','コ','ケ','キョ','キェ','コ','クァ','クェ','クェ','キョ','ク','クォ','クェ','クィ','キュ','ク','クィ','キ'],
-  ['タ','テ','ティャ','ティェ','ト','テ','ティョ','ティェ','ト','トゥァ','トゥェ','トゥェ','ティョ','トゥ','トゥォ','トゥェ','トゥィ','テュ','トゥ','トゥィ','ティ'],
-  ['パ','ペ','ピャ','ピェ','ポ','ペ','ピョ','ピェ','ポ','プァ','プェ','プェ','ピョ','プ','プォ','プェ','プィ','ピュ','プ','プィ','ピ'],
-  ['ハ','ヘ','ヒャ','ヒェ','ホ','ヘ','ヒョ','ヒェ','ホ','ファ','フェ','フェ','ヒョ','フ','フォ','フェ','フィ','ヒュ','フ','フィ','ヒ']];
-  return cBase[cho]?.[jung]||(CHO_K[cho]+JUNG_K[jung]);
-}
-function hangulToKatakana(text){
-  let result='';
-  for(let i=0;i<text.length;i++){
-    const ch=text[i];const d=decomposeHangul(ch);
-    if(!d){result+=ch;continue}
-    result+=choJungToKana(d.cho,d.jung);
-    if(d.jong>0)result+=JONG_K[d.jong];
-  }
-  return result;
-}
+
 function splitKoreanWord(txt){
   // Don't split single char or very short
   if(txt.length<=1||!isHangul(txt.charAt(0)))return[{text:txt,pos:'noun',meaning:''}];
@@ -581,7 +548,7 @@ function splitLineWords(line){
   const result=[];
   for(const p of parts){
     if(/^[a-zA-Z''?!.,\-]+$/.test(p)){result.push({text:p,reading:'',meaning:'',pos:'eng',time:null})}
-    else{const splits=splitKoreanWord(p);for(const s of splits){result.push({text:s.text,reading:hangulToKatakana(s.text),meaning:s.meaning,pos:s.pos,time:null})}}
+    else{const splits=splitKoreanWord(p);for(const s of splits){result.push({text:s.text,reading:'',meaning:s.meaning,pos:s.pos,time:null})}}
   }
   return result;
 }
@@ -648,12 +615,12 @@ function exportAllData(){
     words:line.words.map(w=>({text:w.text,reading:w.reading||'',meaning:w.meaning||'',pos:w.pos||'noun',time:w.time}))}))};
   const txt=JSON.stringify(data);
   navigator.clipboard.writeText(txt).then(()=>{
-    document.getElementById('exportStatus').textContent='✅ コピーしました！Claudeに貼り付けてね';
+    alert('✅ コピーしました！Claudeに貼り付けてね');
   }).catch(()=>{
     const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
-    document.getElementById('exportStatus').textContent='✅ コピーしました！Claudeに貼り付けてね'})}
+    alert('✅ コピーしました！Claudeに貼り付けてね')})}
 
-function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');document.getElementById('tab-'+tab).style.display='block';if(tab==='timing')renderTimingContent();if(tab==='edit')renderEditor();if(tab==='songs'){renderSongList();checkMP3()}window.scrollTo(0,0)}
+function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab)t.classList.toggle('active',t.dataset.tab===tab)});document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');document.getElementById('tab-'+tab).style.display='block';if(tab==='timing')renderTimingContent();if(tab==='edit')renderEditor();if(tab==='songs'){renderSongList();checkMP3()}window.scrollTo(0,0)}
 function fmt(s,precise){if(s==null)return'0:00';const m=Math.floor(s/60),sc=Math.floor(s%60),cs=Math.floor((s%1)*100);return precise?m+':'+(sc<10?'0':'')+sc+'.'+( cs<10?'0':'')+cs:m+':'+(sc<10?'0':'')+sc}
 function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 
