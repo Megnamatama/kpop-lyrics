@@ -495,12 +495,10 @@ function syncMV(playing){const v=getMV();if(!v)return;const wrap=document.getEle
 const _isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
 function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){if(_isIOS&&audio.currentTime>0.15){audio.currentTime-=0.15}audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}else{audio.pause();syncMV(false);document.getElementById('playBtn').textContent='▶'}}
 function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));const spd=speeds[speedIdx];audio.playbackRate=spd;
-  if(_isIOS){
-    // iOS pitch correction creates clipping artifacts — disable it and reduce volume to prevent distortion
-    audio.preservesPitch=false;audio.webkitPreservesPitch=false;
-    audio.volume=spd<1?0.85:1;
-  }else{audio.preservesPitch=true;audio.webkitPreservesPitch=true;audio.volume=1}
-  const v=getMV();if(v){v.playbackRate=spd;v.preservesPitch=!_isIOS;v.webkitPreservesPitch=!_isIOS}
+  audio.preservesPitch=true;audio.webkitPreservesPitch=true;
+  // iOS pitch correction causes clipping at slow speeds — lower volume to prevent distortion
+  audio.volume=(_isIOS&&spd<1)?0.7:1;
+  const v=getMV();if(v){v.playbackRate=spd;v.preservesPitch=true;v.webkitPreservesPitch=true}
   document.getElementById('speedDisplay').textContent=spd+'×'}
 
 function toggleOpt(){document.getElementById('optPanel').classList.toggle('open')}
