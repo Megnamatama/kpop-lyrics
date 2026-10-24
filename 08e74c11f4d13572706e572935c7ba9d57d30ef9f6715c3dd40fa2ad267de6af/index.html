@@ -496,8 +496,8 @@ const _isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||navigator.platform===
 function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){if(_isIOS&&audio.currentTime>0.15){audio.currentTime-=0.15}audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}else{audio.pause();syncMV(false);document.getElementById('playBtn').textContent='▶'}}
 function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));const spd=speeds[speedIdx];audio.playbackRate=spd;
   audio.preservesPitch=true;audio.webkitPreservesPitch=true;
-  // iOS pitch correction causes clipping at slow speeds — lower volume to prevent distortion
-  audio.volume=(_isIOS&&spd<1)?0.7:1;
+  // iOS pitch correction boosts gain ~1.7x at slow speeds — compensate to prevent distortion
+  if(_isIOS&&spd<1){audio.volume=spd===0.5?0.55:0.5}else{audio.volume=1}
   const v=getMV();if(v){v.playbackRate=spd;v.preservesPitch=true;v.webkitPreservesPitch=true}
   document.getElementById('speedDisplay').textContent=spd+'×'}
 
