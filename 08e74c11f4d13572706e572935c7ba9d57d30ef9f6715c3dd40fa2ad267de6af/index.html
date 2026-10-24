@@ -448,29 +448,38 @@ requestAnimationFrame(animLoop);
 audio.addEventListener('loadedmetadata',()=>document.getElementById('totalTime').textContent=fmt(audio.duration,true));
 audio.addEventListener('ended',()=>{if(loopOn){audio.currentTime=0;audio.play();const v=getMV();if(v){v.currentTime=songs[curSong].videoOffset;v.play().catch(()=>{})}}else{syncMV(false);document.getElementById('playBtn').textContent='▶'}});
 
-let _prevActiveWord=null,_prevActiveLine=null,_scrollPending=false;
+let _prevActiveWord=null,_prevActiveLine=null;
+// Lightweight smooth scroll using rAF instead of scrollIntoView (much faster on iOS)
+let _scrollTarget=null,_scrolling=false;
+function smoothScrollTo(el){
+  const rect=el.getBoundingClientRect();
+  const viewH=window.innerHeight;
+  const target=window.scrollY+rect.top-viewH/2+rect.height/2;
+  _scrollTarget=Math.max(0,target);
+  if(!_scrolling){_scrolling=true;_doScroll()}}
+function _doScroll(){
+  if(_scrollTarget===null){_scrolling=false;return}
+  const diff=_scrollTarget-window.scrollY;
+  if(Math.abs(diff)<1){window.scrollTo(0,_scrollTarget);_scrollTarget=null;_scrolling=false;return}
+  window.scrollTo(0,window.scrollY+diff*0.25);
+  requestAnimationFrame(_doScroll)}
+
 function syncHL(t){
   const s=songs[curSong];let aL=-1;
   for(let i=s.lines.length-1;i>=0;i--){if(s.lines[i].time!==null&&t>=s.lines[i].time){aL=i;break}}
   let aW=-1;
   if(aL>=0){const ws=s.lines[aL].words;for(let j=ws.length-1;j>=0;j--){if(ws[j].time!==null&&t>=ws[j].time){aW=j;break}}}
   if(aL!==curLine){
-    // Diff-only: just swap prev line and new line classes (2 elements, not N)
     if(_prevActiveLine){_prevActiveLine.classList.remove('active');_prevActiveLine.classList.add('past')}
-    // Mark lines between old curLine+1 and aL-1 as past (if jumping forward)
     if(curLine>=0&&aL>curLine+1){for(let i=curLine+1;i<aL;i++){const el=document.getElementById('line-'+i);if(el){el.classList.remove('future');el.classList.add('past')}}}
     curLine=aL;
     const newEl=aL>=0?document.getElementById('line-'+aL):null;
     if(newEl){
       newEl.classList.remove('past','future');newEl.classList.add('active');
       _prevActiveLine=newEl;
-      // Scroll on next frame so highlight paint isn't blocked
-      if(!_scrollPending){_scrollPending=true;
-        requestAnimationFrame(()=>{_scrollPending=false;
-          if(_prevActiveLine)_prevActiveLine.scrollIntoView({behavior:'smooth',block:'center'})})}}
+      smoothScrollTo(newEl)}
     else{_prevActiveLine=null}
   }
-  // Word highlight: diff-only
   if(aW!==curWord){
     if(_prevActiveWord){_prevActiveWord.classList.remove('word-active');_prevActiveWord=null}
     if(aL>=0&&aW>=0){const el=document.getElementById(`wb-${aL}-${aW}`);if(el){el.classList.add('word-active');_prevActiveWord=el}}}
@@ -493,7 +502,7 @@ pw.addEventListener('touchend',()=>{drag=false;setTimeout(hideTooltip,500)});
 function getMV(){const el=document.getElementById('mvVideoWrap');return el?el.querySelector('video'):null}
 function syncMV(playing){const v=getMV();if(!v)return;const wrap=document.getElementById('mvVideoWrap');if(!wrap.classList.contains('open'))return;if(playing){const target=audio.currentTime+songs[curSong].videoOffset;if(target<0){v.currentTime=0;v.pause()}else{v.currentTime=target;v.play().catch(()=>{})}}else{v.pause()}}
 const _isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
-function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){if(_isIOS&&audio.currentTime>0.15){audio.currentTime-=0.15}audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}else{audio.pause();syncMV(false);document.getElementById('playBtn').textContent='▶'}}
+function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}else{audio.pause();syncMV(false);document.getElementById('playBtn').textContent='▶'}}
 function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));const spd=speeds[speedIdx];audio.playbackRate=spd;
   audio.preservesPitch=true;audio.webkitPreservesPitch=true;
   // iOS pitch correction boosts gain ~1.7x at slow speeds — compensate to prevent distortion
@@ -639,7 +648,7 @@ function tapWT(i,j){if(!audio.src)return alert('先にMP3を読み込んでね')
 function setWT(i,j,v){songs[curSong].lines[i].words[j].time=parseT(v);save();renderTimingContent()}
 function clrWT(i,j){songs[curSong].lines[i].words[j].time=null;save();renderTimingContent()}
 function skip(sec){if(audio.src)audio.currentTime=Math.max(0,Math.min(audio.duration||0,audio.currentTime+sec))}
-function seekToLine(i){const t=songs[curSong].lines[i]?.time;if(t!==null&&audio.src){audio.currentTime=_isIOS?Math.max(0,t-0.15):t;if(audio.paused){audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}}}
+function seekToLine(i){const t=songs[curSong].lines[i]?.time;if(t!==null&&audio.src){audio.currentTime=t;if(audio.paused){audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}}}
 function parseT(v){if(!v||v==='--:--')return null;if(v.includes(':')){const[m,s]=v.split(':');return parseInt(m)*60+parseFloat(s)}return parseFloat(v)||null}
 
 // Songs
