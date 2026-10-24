@@ -147,7 +147,7 @@ details[open] summary::before{content:'▾ '}
       <div style="font-size:48px;margin-bottom:8px">🎵</div>
       <p style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:4px">曲を選んでスタート！</p>
       <p style="font-size:11px;color:var(--text-dim)">歌詞を見ながら韓国語を学ぼう</p>
-      <p style="font-size:9px;color:var(--text-dim);opacity:.5;margin-top:8px">🔧 10/25: 読み込み高速化・ハイライト遅延修正・スロー音質改善</p>
+      <p style="font-size:9px;color:var(--text-dim);opacity:.5;margin-top:8px">🔧 10/25: 読み込み高速化・ハイライト遅延修正・iOS再生ラグ補正・iOSスロー音質修正</p>
     </div>
     <div class="section-pad" id="homeSongList">
       <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">📡 読み込み中...</div>
@@ -260,7 +260,6 @@ function csvURL(name){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/
 let songs=[];
 let curSong=0,curLine=-1,curWord=-1,timingMode='line',editLineIdx=null,editWordIdx=null;
 let audio=document.getElementById('audioPlayer'),speeds=[.5,.75,1,1.25,1.5],speedIdx=2;
-audio.preservesPitch=true;audio.webkitPreservesPitch=true;
 let loopOn=false,abState=0,abA=null,abB=null;
 let hiddenPos=new Set();
 
@@ -493,8 +492,16 @@ pw.addEventListener('touchend',()=>{drag=false;setTimeout(hideTooltip,500)});
 
 function getMV(){const el=document.getElementById('mvVideoWrap');return el?el.querySelector('video'):null}
 function syncMV(playing){const v=getMV();if(!v)return;const wrap=document.getElementById('mvVideoWrap');if(!wrap.classList.contains('open'))return;if(playing){const target=audio.currentTime+songs[curSong].videoOffset;if(target<0){v.currentTime=0;v.pause()}else{v.currentTime=target;v.play().catch(()=>{})}}else{v.pause()}}
-function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}else{audio.pause();syncMV(false);document.getElementById('playBtn').textContent='▶'}}
-function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));audio.playbackRate=speeds[speedIdx];audio.preservesPitch=true;audio.webkitPreservesPitch=true;const v=getMV();if(v){v.playbackRate=speeds[speedIdx];v.preservesPitch=true;v.webkitPreservesPitch=true}document.getElementById('speedDisplay').textContent=speeds[speedIdx]+'×'}
+const _isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
+function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){if(_isIOS&&audio.currentTime>0.15){audio.currentTime-=0.15}audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}else{audio.pause();syncMV(false);document.getElementById('playBtn').textContent='▶'}}
+function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));const spd=speeds[speedIdx];audio.playbackRate=spd;
+  if(_isIOS){
+    // iOS pitch correction creates clipping artifacts — disable it and reduce volume to prevent distortion
+    audio.preservesPitch=false;audio.webkitPreservesPitch=false;
+    audio.volume=spd<1?0.85:1;
+  }else{audio.preservesPitch=true;audio.webkitPreservesPitch=true;audio.volume=1}
+  const v=getMV();if(v){v.playbackRate=spd;v.preservesPitch=!_isIOS;v.webkitPreservesPitch=!_isIOS}
+  document.getElementById('speedDisplay').textContent=spd+'×'}
 
 function toggleOpt(){document.getElementById('optPanel').classList.toggle('open')}
 
@@ -634,7 +641,7 @@ function tapWT(i,j){if(!audio.src)return alert('先にMP3を読み込んでね')
 function setWT(i,j,v){songs[curSong].lines[i].words[j].time=parseT(v);save();renderTimingContent()}
 function clrWT(i,j){songs[curSong].lines[i].words[j].time=null;save();renderTimingContent()}
 function skip(sec){if(audio.src)audio.currentTime=Math.max(0,Math.min(audio.duration||0,audio.currentTime+sec))}
-function seekToLine(i){const t=songs[curSong].lines[i]?.time;if(t!==null&&audio.src){audio.currentTime=t;if(audio.paused){audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}}}
+function seekToLine(i){const t=songs[curSong].lines[i]?.time;if(t!==null&&audio.src){audio.currentTime=_isIOS?Math.max(0,t-0.15):t;if(audio.paused){audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}}}
 function parseT(v){if(!v||v==='--:--')return null;if(v.includes(':')){const[m,s]=v.split(':');return parseInt(m)*60+parseFloat(s)}return parseFloat(v)||null}
 
 // Songs
