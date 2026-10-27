@@ -147,7 +147,7 @@ details[open] summary::before{content:'▾ '}
       <div style="font-size:48px;margin-bottom:8px">🎵</div>
       <p style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:4px">曲を選んでスタート！</p>
       <p style="font-size:11px;color:var(--text-dim)">歌詞を見ながら韓国語を学ぼう</p>
-      <p style="font-size:9px;color:var(--text-dim);opacity:.5;margin-top:8px">🔧 10/25: 読み込み高速化・ハイライト遅延修正・iOS再生ラグ補正・iOSスロー音質修正</p>
+      <p style="font-size:9px;color:var(--text-dim);opacity:.5;margin-top:8px">🔧 10/25: 読み込み高速化・iOSハイライト先読み・スロー音質修正・スクロール軽量化</p>
     </div>
     <div class="section-pad" id="homeSongList">
       <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">📡 読み込み中...</div>
@@ -427,14 +427,25 @@ function renderLyrics(){
   // Reset cached highlight refs since DOM was rebuilt
   _prevActiveLine=null;_prevActiveWord=null;curLine=-1;curWord=-1}
 
-// Sync (optimized: cache DOM, throttle updates, diff-only class changes)
+// Sync (optimized: predictive time to beat iOS currentTime lag)
 const _pFill=document.getElementById('progressFill');
 const _cTime=document.getElementById('currentTime');
 const _mvWrap=document.getElementById('mvVideoWrap');
 let _lastPct=-1,_lastTimeTxt='',_mvSyncCounter=0;
+// Predictive time: track when currentTime last changed and extrapolate
+let _lastKnownTime=0,_lastKnownAt=0,_lastRawTime=-1;
+function getPredictedTime(){
+  const raw=audio.currentTime;
+  const now=performance.now()/1000;
+  if(raw!==_lastRawTime){_lastKnownTime=raw;_lastKnownAt=now;_lastRawTime=raw}
+  if(audio.paused||!_isIOS)return raw;
+  // On iOS, predict ahead based on elapsed wall-clock time and playback rate
+  const elapsed=(now-_lastKnownAt)*audio.playbackRate;
+  return Math.min(_lastKnownTime+elapsed,audio.duration||Infinity);
+}
 function animLoop(){
   if(audio.src&&audio.duration){
-    const ct=audio.currentTime,dur=audio.duration;
+    const ct=getPredictedTime(),dur=audio.duration;
     if(abState===2&&abA!==null&&abB!==null&&ct>=abB){audio.currentTime=abA}
     const pct=((ct/dur)*100).toFixed(1);
     if(pct!==_lastPct){_pFill.style.width=pct+'%';_lastPct=pct}
@@ -449,21 +460,6 @@ audio.addEventListener('loadedmetadata',()=>document.getElementById('totalTime')
 audio.addEventListener('ended',()=>{if(loopOn){audio.currentTime=0;audio.play();const v=getMV();if(v){v.currentTime=songs[curSong].videoOffset;v.play().catch(()=>{})}}else{syncMV(false);document.getElementById('playBtn').textContent='▶'}});
 
 let _prevActiveWord=null,_prevActiveLine=null;
-// Lightweight smooth scroll using rAF instead of scrollIntoView (much faster on iOS)
-let _scrollTarget=null,_scrolling=false;
-function smoothScrollTo(el){
-  const rect=el.getBoundingClientRect();
-  const viewH=window.innerHeight;
-  const target=window.scrollY+rect.top-viewH/2+rect.height/2;
-  _scrollTarget=Math.max(0,target);
-  if(!_scrolling){_scrolling=true;_doScroll()}}
-function _doScroll(){
-  if(_scrollTarget===null){_scrolling=false;return}
-  const diff=_scrollTarget-window.scrollY;
-  if(Math.abs(diff)<1){window.scrollTo(0,_scrollTarget);_scrollTarget=null;_scrolling=false;return}
-  window.scrollTo(0,window.scrollY+diff*0.25);
-  requestAnimationFrame(_doScroll)}
-
 function syncHL(t){
   const s=songs[curSong];let aL=-1;
   for(let i=s.lines.length-1;i>=0;i--){if(s.lines[i].time!==null&&t>=s.lines[i].time){aL=i;break}}
@@ -477,7 +473,7 @@ function syncHL(t){
     if(newEl){
       newEl.classList.remove('past','future');newEl.classList.add('active');
       _prevActiveLine=newEl;
-      smoothScrollTo(newEl)}
+      newEl.scrollIntoView({behavior:'smooth',block:'center'})}
     else{_prevActiveLine=null}
   }
   if(aW!==curWord){
