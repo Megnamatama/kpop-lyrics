@@ -126,7 +126,17 @@ details[open] summary::before{content:'▾ '}
 .menu-item:active{background:var(--bg3)}
 .opt-panel{overflow:hidden;max-height:0;transition:max-height .25s ease;margin-top:0}
 .opt-panel.open{max-height:120px;margin-top:4px}
-.word-block.pos-hidden{display:none}
+.word-block.pos-hidden .word-reading,.word-block.pos-hidden .word-meaning{visibility:hidden}
+.help-sec{margin-bottom:32px}.help-sec h3{font-size:16px;font-weight:700;color:var(--accent);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
+.help-sec h4{font-size:13px;font-weight:700;color:var(--text);margin:18px 0 8px;padding-left:4px;border-left:3px solid var(--accent)}
+.help-sec p,.help-sec li{font-size:12.5px;color:var(--text);line-height:1.8;padding:0 4px}
+.help-sec ul{padding-left:22px;margin:6px 0}
+.hex{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:10px 0;font-size:12.5px;line-height:2.1}
+.hex .kr{font-size:16px;font-weight:700;color:var(--accent)}.hex .arrow{color:var(--text-dim);margin:0 6px}
+.hex .mean{color:var(--text-dim);font-size:11px}
+.hex-row{display:flex;align-items:center;gap:6px;padding:3px 0;flex-wrap:wrap}
+.help-nav-btn{padding:5px 12px;border-radius:14px;border:1px solid var(--border);background:var(--bg2);color:var(--text-dim);font-size:11px;white-space:nowrap;cursor:pointer;flex-shrink:0}
+.help-nav-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .mv-panel{background:var(--bg3);border-bottom:1px solid var(--border);overflow:hidden;position:sticky;top:77px;z-index:35}
 .mv-toggle{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px;font-size:11px;color:var(--text-dim);cursor:pointer;background:none;border:none;width:100%}
 .mv-video-wrap{max-height:0;overflow:hidden;transition:max-height .3s ease}
@@ -147,7 +157,8 @@ details[open] summary::before{content:'▾ '}
       <div style="font-size:48px;margin-bottom:8px">🎵</div>
       <p style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:4px">曲を選んでスタート！</p>
       <p style="font-size:11px;color:var(--text-dim)">歌詞を見ながら韓国語を学ぼう</p>
-      <p style="font-size:9px;color:var(--text-dim);opacity:.5;margin-top:8px">🔧 10/25: 読み込み高速化・iOSハイライト先読み・スロー音質修正・スクロール軽量化</p>
+      <p style="font-size:9px;color:var(--text-dim);opacity:.5;margin-top:8px">🔧 10/27: 読み込み高速化・iOSハイライト先読み・スロー音質修正・品詞フィルター改良</p>
+      <button onclick="showHelp()" style="margin-top:12px;padding:8px 20px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer">📖 韓国語ヘルプ</button>
     </div>
     <div class="section-pad" id="homeSongList">
       <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">📡 読み込み中...</div>
@@ -248,6 +259,18 @@ details[open] summary::before{content:'▾ '}
 <input type="file" id="audioFileInput" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac,.flac">
 <audio id="audioPlayer"></audio>
 <div id="modalRoot"></div>
+<!-- HELP screen -->
+<div id="helpScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto;-webkit-overflow-scrolling:touch">
+  <div style="position:sticky;top:0;background:var(--bg);z-index:10;padding:env(safe-area-inset-top,0) 16px 0;border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
+      <button onclick="closeHelp()" style="background:none;border:none;color:var(--accent);font-size:14px;font-weight:600;cursor:pointer">← 戻る</button>
+      <span style="font-size:15px;font-weight:700;color:var(--text)">📖 韓国語ヘルプ</span>
+      <span style="width:40px"></span>
+    </div>
+    <div id="helpNav" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch"></div>
+  </div>
+  <div style="padding:16px;max-width:480px;margin:0 auto" id="helpBody"></div>
+</div>
 
 <script>
 const POS={noun:{l:'名詞',c:'#f472b6',bg:'rgba(244,114,182,.2)'},particle:{l:'助詞',c:'#60a5fa',bg:'rgba(96,165,250,.2)'},verb:{l:'動詞',c:'#34d399',bg:'rgba(52,211,153,.2)'},adj:{l:'形容詞',c:'#fbbf24',bg:'rgba(251,191,36,.2)'},adv:{l:'副詞',c:'#fb923c',bg:'rgba(251,146,60,.2)'},pronoun:{l:'代名詞',c:'#38bdf8',bg:'rgba(56,189,248,.2)'},ending:{l:'語尾',c:'#a78bfa',bg:'rgba(167,139,250,.2)'},eng:{l:'英語',c:'#94a3b8',bg:'rgba(148,163,184,.12)'}};
@@ -522,7 +545,7 @@ function applyPosFilter(){
   // Use a dynamic style rule instead of iterating all word-block elements
   let styleEl=document.getElementById('posFilterStyle');
   if(!styleEl){styleEl=document.createElement('style');styleEl.id='posFilterStyle';document.head.appendChild(styleEl)}
-  styleEl.textContent=[...hiddenPos].map(p=>`.word-block.pos-${p}{display:none}`).join('')}
+  styleEl.textContent=[...hiddenPos].map(p=>`.word-block.pos-${p} .word-reading,.word-block.pos-${p} .word-meaning{visibility:hidden}`).join('')}
 
 document.getElementById('audioFileInput').addEventListener('change',async function(e){
   const f=e.target.files[0];if(!f)return;
@@ -607,6 +630,285 @@ function doPaste(mode){
   const modeText=mode==='append'?'追加':'上書き';
   alert(`${ls.length}行を${modeText}しました！\n助詞（는/을/에 等）は自動分離済み。\n歌詞編集タブで確認・修正してください。`)}
 function closeM(){document.getElementById('modalRoot').innerHTML=''}
+
+// === HELP PAGE ===
+const helpSections=[
+{id:'vowel',title:'🔤 二重母音',content:`
+<p>2つの母音を組み合わせた音。素早く繋げて1音で発音する！</p>
+<h4>ㅘ・ㅙ・ㅚ（ㅗ系）</h4>
+<div class="hex">
+<div class="hex-row"><span class="kr">ㅘ</span> = ㅗ + ㅏ <span class="mean">→「ワ」</span></div>
+<div class="hex-row"><span class="kr">ㅙ</span> = ㅗ + ㅐ <span class="mean">→「ウェ」</span></div>
+<div class="hex-row"><span class="kr">ㅚ</span> = ㅗ + ㅣ <span class="mean">→「ウェ」(実際はㅙと同じ発音)</span></div>
+</div>
+<div class="hex">
+<div class="hex-row"><span class="kr">왜</span> <span class="mean">なぜ</span></div>
+<div class="hex-row"><span class="kr">외국</span> <span class="mean">外国</span></div>
+<div class="hex-row"><span class="kr">과자</span> <span class="mean">お菓子</span></div>
+<div class="hex-row"><span class="kr">사과</span> <span class="mean">りんご・謝罪</span></div>
+<div class="hex-row"><span class="kr">회사</span> <span class="mean">会社</span></div>
+</div>
+<h4>ㅝ・ㅞ・ㅟ（ㅜ系）</h4>
+<div class="hex">
+<div class="hex-row"><span class="kr">ㅝ</span> = ㅜ + ㅓ <span class="mean">→「ウォ」</span></div>
+<div class="hex-row"><span class="kr">ㅞ</span> = ㅜ + ㅔ <span class="mean">→「ウェ」</span></div>
+<div class="hex-row"><span class="kr">ㅟ</span> = ㅜ + ㅣ <span class="mean">→「ウィ」</span></div>
+</div>
+<div class="hex">
+<div class="hex-row"><span class="kr">뭐</span> <span class="mean">何</span></div>
+<div class="hex-row"><span class="kr">위</span> <span class="mean">上</span></div>
+<div class="hex-row"><span class="kr">귀</span> <span class="mean">耳</span></div>
+<div class="hex-row"><span class="kr">쉬다</span> <span class="mean">休む</span></div>
+<div class="hex-row"><span class="kr">권리</span> <span class="mean">権利</span></div>
+</div>
+<h4>ㅢ</h4>
+<div class="hex">
+<div class="hex-row"><span class="kr">ㅢ</span> = ㅡ + ㅣ <span class="mean">→「ウィ」だが位置で変わる!</span></div>
+<div class="hex-row">・語頭: 의사 → <span class="kr">ウィサ</span> <span class="mean">(医者)</span></div>
+<div class="hex-row">・語中: 회의 → <span class="kr">フェイ</span> <span class="mean">(会議) ※ㅣの音になる</span></div>
+<div class="hex-row">・「〜の」: 나의 → <span class="kr">ナエ</span> <span class="mean">(私の) ※ㅔの音になる</span></div>
+</div>
+`},
+{id:'conjugation',title:'✏️ 語尾の活用',content:`
+<h4>해요体（丁寧カジュアル）</h4>
+<p>語幹 + <b>아/어요</b>。一番よく使う形！</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">가다</span> <span class="arrow">→</span> <span class="kr">가요</span> <span class="mean">行きます（ㅏだから아요→縮めて가요）</span></div>
+<div class="hex-row"><span class="kr">먹다</span> <span class="arrow">→</span> <span class="kr">먹어요</span> <span class="mean">食べます（ㅓだから어요）</span></div>
+<div class="hex-row"><span class="kr">하다</span> <span class="arrow">→</span> <span class="kr">해요</span> <span class="mean">します（하+여요→해요 特別！）</span></div>
+<div class="hex-row"><span class="kr">오다</span> <span class="arrow">→</span> <span class="kr">와요</span> <span class="mean">来ます（ㅗ+아→와）</span></div>
+<div class="hex-row"><span class="kr">보다</span> <span class="arrow">→</span> <span class="kr">봐요</span> <span class="mean">見ます（ㅗ+아→와）</span></div>
+</div>
+<h4>합니다体（フォーマル）</h4>
+<p>パッチムあり → 語幹+<b>습니다</b><br>パッチムなし → 語幹+<b>ㅂ니다</b></p>
+<div class="hex">
+<div class="hex-row"><span class="kr">먹다</span> <span class="arrow">→</span> <span class="kr">먹습니다</span> <span class="mean">食べます（パッチムあり）</span></div>
+<div class="hex-row"><span class="kr">가다</span> <span class="arrow">→</span> <span class="kr">갑니다</span> <span class="mean">行きます（パッチムなし→ㅂを付ける）</span></div>
+<div class="hex-row"><span class="kr">읽다</span> <span class="arrow">→</span> <span class="kr">읽습니다</span> <span class="mean">読みます</span></div>
+<div class="hex-row"><span class="kr">사랑하다</span> <span class="arrow">→</span> <span class="kr">사랑합니다</span> <span class="mean">愛しています</span></div>
+</div>
+<h4>반말（タメ口）— 歌詞でよく出る！</h4>
+<p><b>해요</b>体から<b>요</b>を取るだけ！</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">가요</span> <span class="arrow">→</span> <span class="kr">가</span> <span class="mean">行く</span></div>
+<div class="hex-row"><span class="kr">해요</span> <span class="arrow">→</span> <span class="kr">해</span> <span class="mean">する</span></div>
+<div class="hex-row"><span class="kr">몰라요</span> <span class="arrow">→</span> <span class="kr">몰라</span> <span class="mean">知らない</span></div>
+</div>
+<h4>過去形</h4>
+<p>語幹 + <b>았/었</b> + <b>어요</b></p>
+<div class="hex">
+<div class="hex-row"><span class="kr">가다</span> <span class="arrow">→</span> <span class="kr">갔어요</span> <span class="mean">行きました（가+았→갔）</span></div>
+<div class="hex-row"><span class="kr">먹다</span> <span class="arrow">→</span> <span class="kr">먹었어요</span> <span class="mean">食べました</span></div>
+<div class="hex-row"><span class="kr">하다</span> <span class="arrow">→</span> <span class="kr">했어요</span> <span class="mean">しました（하+였→했）</span></div>
+</div>
+`},
+{id:'aoeo',title:'🔄 아/어の変化',content:`
+<p>語幹の最後の母音で <b>아</b> か <b>어</b> か決まる！</p>
+<h4>基本ルール</h4>
+<div class="hex">
+<div class="hex-row">語幹の最後の母音が <span class="kr">ㅏ・ㅗ</span> <span class="arrow">→</span> <span class="kr">아</span></div>
+<div class="hex-row">それ以外 <span class="arrow">→</span> <span class="kr">어</span></div>
+</div>
+<h4>縮約パターン</h4>
+<div class="hex">
+<div class="hex-row"><span class="kr">ㅏ + 아</span> → <span class="kr">ㅏ</span> <span class="mean">가+아요 → 가요</span></div>
+<div class="hex-row"><span class="kr">ㅗ + 아</span> → <span class="kr">ㅘ</span> <span class="mean">오+아요 → 와요</span></div>
+<div class="hex-row"><span class="kr">ㅜ + 어</span> → <span class="kr">ㅝ</span> <span class="mean">배우+어요 → 배워요</span></div>
+<div class="hex-row"><span class="kr">ㅣ + 어</span> → <span class="kr">ㅕ</span> <span class="mean">기다리+어요 → 기다려요</span></div>
+<div class="hex-row"><span class="kr">ㅡ + 어</span> → <span class="kr">ㅓ</span> <span class="mean">쓰+어요 → 써요（ㅡが消える！）</span></div>
+<div class="hex-row"><span class="kr">ㅐ + 어</span> → <span class="kr">ㅐ</span> <span class="mean">보내+어요 → 보내요（変わらない）</span></div>
+</div>
+<h4>하다の特別変化</h4>
+<div class="hex">
+<div class="hex-row"><span class="kr">하 + 여</span> → <span class="kr">해</span> <span class="mean">하다動詞は全部이パターン</span></div>
+<div class="hex-row">例: <span class="kr">사랑하다</span> → <span class="kr">사랑해</span> <span class="mean">愛する</span></div>
+</div>
+`},
+{id:'patchim2',title:'🧱 二重パッチム',content:`
+<p>パッチム（終声）に子音が2つあるやつ！<br>単独で読む時は、どちらか片方だけ発音する。</p>
+<h4>左を読むグループ</h4>
+<div class="hex">
+<div class="hex-row"><span class="kr">ㄳ</span> <span class="arrow">→</span> ㄱで読む <span class="mean">몫 [목] 分け前</span></div>
+<div class="hex-row"><span class="kr">ㄵ</span> <span class="arrow">→</span> ㄴで読む <span class="mean">앉다 [안다] 座る</span></div>
+<div class="hex-row"><span class="kr">ㄼ</span> <span class="arrow">→</span> ㄹで読む <span class="mean">짧다 [짤다] 短い</span></div>
+<div class="hex-row"><span class="kr">ㄽ</span> <span class="arrow">→</span> ㄹで読む <span class="mean">외곬 [외골] 一筋</span></div>
+<div class="hex-row"><span class="kr">ㄾ</span> <span class="arrow">→</span> ㄹで読む <span class="mean">핥다 [할다] 舐める</span></div>
+<div class="hex-row"><span class="kr">ㅄ</span> <span class="arrow">→</span> ㅂで読む <span class="mean">없다 [업다] ない</span></div>
+</div>
+<p style="font-size:11px;color:var(--text-dim);padding:4px 8px">⚠️ 例外: 밟다 → [밥다]（ㄼだけど右のㅂで読む）</p>
+<h4>右を読むグループ</h4>
+<div class="hex">
+<div class="hex-row"><span class="kr">ㄺ</span> <span class="arrow">→</span> ㄱで読む <span class="mean">읽다 [익다] 読む</span></div>
+<div class="hex-row"><span class="kr">ㄻ</span> <span class="arrow">→</span> ㅁで読む <span class="mean">삶 [삼] 人生</span></div>
+<div class="hex-row"><span class="kr">ㄿ</span> <span class="arrow">→</span> ㅂで読む <span class="mean">읊다 [읍다] 詠む</span></div>
+</div>
+<h4>次に母音が来たら？</h4>
+<p>両方読む！ 左はそのまま残り、右が次の音節の頭に移動する。</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">읽어요</span> <span class="arrow">→</span> <span class="kr">[일거요]</span> <span class="mean">読みます</span></div>
+<div class="hex-row"><span class="kr">없어요</span> <span class="arrow">→</span> <span class="kr">[업서요]</span> <span class="mean">ないです</span></div>
+<div class="hex-row"><span class="kr">앉아요</span> <span class="arrow">→</span> <span class="kr">[안자요]</span> <span class="mean">座ります</span></div>
+</div>
+`},
+{id:'pronunciation',title:'🗣 発音変化',content:`
+<h4>連音化（리에종）</h4>
+<p><b>パッチム</b> + <b>母音</b> → パッチムが<b>次の音節の頭に移動</b></p>
+<div class="hex">
+<div class="hex-row"><span class="kr">음악</span> <span class="arrow">→</span> <span class="kr">[으막]</span> <span class="mean">音楽</span></div>
+<div class="hex-row"><span class="kr">한국어</span> <span class="arrow">→</span> <span class="kr">[한구거]</span> <span class="mean">韓国語</span></div>
+<div class="hex-row"><span class="kr">같이</span> <span class="arrow">→</span> <span class="kr">[가치]</span> <span class="mean">一緒に ※ㅌ+이→치</span></div>
+<div class="hex-row"><span class="kr">목요일</span> <span class="arrow">→</span> <span class="kr">[모교일]</span> <span class="mean">木曜日</span></div>
+<div class="hex-row"><span class="kr">없어</span> <span class="arrow">→</span> <span class="kr">[업서]</span> <span class="mean">ない</span></div>
+</div>
+<h4>鼻音化</h4>
+<p><b>ㄱ/ㄷ/ㅂ</b> + <b>ㄴ/ㅁ</b> → <b>ㅇ/ㄴ/ㅁ</b> に変わる</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">학문</span> <span class="arrow">→</span> <span class="kr">[항문]</span> <span class="mean">学問（ㄱ→ㅇ）</span></div>
+<div class="hex-row"><span class="kr">받는</span> <span class="arrow">→</span> <span class="kr">[반는]</span> <span class="mean">受ける（ㄷ→ㄴ）</span></div>
+<div class="hex-row"><span class="kr">입문</span> <span class="arrow">→</span> <span class="kr">[임문]</span> <span class="mean">入門（ㅂ→ㅁ）</span></div>
+</div>
+<h4>激音化</h4>
+<p><b>ㄱ/ㄷ/ㅂ/ㅈ</b> + <b>ㅎ</b>（またはその逆）→ 激音 <b>ㅋ/ㅌ/ㅍ/ㅊ</b> に変化！</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">좋다</span> <span class="arrow">→</span> <span class="kr">[조타]</span> <span class="mean">良い（ㅎ+ㄷ→ㅌ）</span></div>
+<div class="hex-row"><span class="kr">축하</span> <span class="arrow">→</span> <span class="kr">[추카]</span> <span class="mean">祝い（ㄱ+ㅎ→ㅋ）</span></div>
+<div class="hex-row"><span class="kr">입학</span> <span class="arrow">→</span> <span class="kr">[이팍]</span> <span class="mean">入学（ㅂ+ㅎ→ㅍ）</span></div>
+</div>
+<h4>濃音化</h4>
+<p>パッチム（<b>ㄱ/ㄷ/ㅂ</b>）の後の子音が<b>濃音</b>に変わる</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">학교</span> <span class="arrow">→</span> <span class="kr">[학꾜]</span> <span class="mean">学校</span></div>
+<div class="hex-row"><span class="kr">식당</span> <span class="arrow">→</span> <span class="kr">[식땅]</span> <span class="mean">食堂</span></div>
+<div class="hex-row"><span class="kr">접시</span> <span class="arrow">→</span> <span class="kr">[접씨]</span> <span class="mean">皿</span></div>
+</div>
+<h4>口蓋音化</h4>
+<p><b>ㄷ/ㅌ</b> + <b>이</b> → <b>ㅈ/ㅊ</b> に変化</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">같이</span> <span class="arrow">→</span> <span class="kr">[가치]</span> <span class="mean">一緒に</span></div>
+<div class="hex-row"><span class="kr">굳이</span> <span class="arrow">→</span> <span class="kr">[구지]</span> <span class="mean">あえて</span></div>
+</div>
+<h4>ㅎの弱化・脱落</h4>
+<p>母音 + <b>ㅎ</b> + 母音 → <b>ㅎが消える</b></p>
+<div class="hex">
+<div class="hex-row"><span class="kr">좋아</span> <span class="arrow">→</span> <span class="kr">[조아]</span> <span class="mean">好き</span></div>
+<div class="hex-row"><span class="kr">놓아</span> <span class="arrow">→</span> <span class="kr">[노아]</span> <span class="mean">置く</span></div>
+</div>
+`},
+{id:'grammar',title:'📚 頻出文法',content:`
+<h4>〜고 싶다（〜したい）</h4>
+<p>語幹にそのまま <b>고 싶다</b> をつけるだけ！</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">가고 싶어</span> <span class="mean">行きたい</span></div>
+<div class="hex-row"><span class="kr">보고 싶어</span> <span class="mean">会いたい（見たい）</span></div>
+<div class="hex-row"><span class="kr">알고 싶어</span> <span class="mean">知りたい</span></div>
+<div class="hex-row"><span class="kr">듣고 싶어</span> <span class="mean">聞きたい</span></div>
+<div class="hex-row"><span class="kr">말하고 싶어</span> <span class="mean">言いたい・話したい</span></div>
+</div>
+<h4>〜(으)ㄹ 수 있다/없다（〜できる/できない）</h4>
+<p>パッチムなし → <b>ㄹ 수</b><br>パッチムあり → <b>을 수</b></p>
+<div class="hex">
+<div class="hex-row"><span class="kr">할 수 있어</span> <span class="mean">できる</span></div>
+<div class="hex-row"><span class="kr">갈 수 없어</span> <span class="mean">行けない</span></div>
+<div class="hex-row"><span class="kr">믿을 수 있어</span> <span class="mean">信じられる（パッチムあり→을）</span></div>
+<div class="hex-row"><span class="kr">볼 수 있어</span> <span class="mean">見られる</span></div>
+<div class="hex-row"><span class="kr">찾을 수 없어</span> <span class="mean">見つけられない</span></div>
+</div>
+<h4>〜지 마（〜しないで）</h4>
+<p>語幹 + <b>지 마</b>。歌詞に超頻出！</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">가지 마</span> <span class="mean">行かないで</span></div>
+<div class="hex-row"><span class="kr">울지 마</span> <span class="mean">泣かないで</span></div>
+<div class="hex-row"><span class="kr">걱정하지 마</span> <span class="mean">心配しないで</span></div>
+<div class="hex-row"><span class="kr">잊지 마</span> <span class="mean">忘れないで</span></div>
+<div class="hex-row"><span class="kr">놓지 마</span> <span class="mean">離さないで</span></div>
+</div>
+<h4>〜(으)니까（〜だから）</h4>
+<p>理由を言う時に。<br>パッチムなし → <b>니까</b><br>パッチムあり → <b>으니까</b></p>
+<div class="hex">
+<div class="hex-row"><span class="kr">바쁘니까</span> <span class="mean">忙しいから</span></div>
+<div class="hex-row"><span class="kr">좋으니까</span> <span class="mean">いいから（パッチムあり→으니까）</span></div>
+<div class="hex-row"><span class="kr">알으니까</span> <span class="mean">知ってるから</span></div>
+<div class="hex-row"><span class="kr">추우니까</span> <span class="mean">寒いから</span></div>
+</div>
+<h4>〜(으)면（〜なら/〜たら）</h4>
+<p>仮定・条件。<br>パッチムなし → <b>면</b><br>パッチムあり → <b>으면</b></p>
+<div class="hex">
+<div class="hex-row"><span class="kr">가면</span> <span class="mean">行ったら</span></div>
+<div class="hex-row"><span class="kr">있으면</span> <span class="mean">あったら</span></div>
+<div class="hex-row"><span class="kr">만나면</span> <span class="mean">会ったら</span></div>
+<div class="hex-row"><span class="kr">들으면</span> <span class="mean">聞いたら</span></div>
+<div class="hex-row"><span class="kr">괜찮으면</span> <span class="mean">大丈夫なら</span></div>
+</div>
+<h4>〜고 있다（〜している）</h4>
+<p>進行中を表す。語幹 + <b>고 있다</b></p>
+<div class="hex">
+<div class="hex-row"><span class="kr">듣고 있어</span> <span class="mean">聴いている</span></div>
+<div class="hex-row"><span class="kr">기다리고 있어</span> <span class="mean">待っている</span></div>
+<div class="hex-row"><span class="kr">생각하고 있어</span> <span class="mean">考えている</span></div>
+<div class="hex-row"><span class="kr">웃고 있어</span> <span class="mean">笑っている</span></div>
+</div>
+<h4>連体形 〜ㄴ/는/ㄹ（名詞を修飾する形）</h4>
+<p>日本語の「〜した○○」「〜する○○」にあたる形。<br>動詞・形容詞を名詞の前に置く時に使う！</p>
+<p style="font-size:11.5px;color:var(--text);padding:4px 8px;line-height:1.9"><b>🕐 過去</b>（動詞）: 語幹 + (으)ㄴ<br><b>🔄 現在</b>（動詞）: 語幹 + 는<br><b>🔮 未来・推量</b>: 語幹 + (으)ㄹ<br><b>📌 形容詞の現在</b>: 語幹 + (으)ㄴ ※動詞の過去と同じ形！</p>
+<div class="hex">
+<div class="hex-row">🕐 <span class="kr">만든 노래</span> <span class="mean">作った歌（만들다→만든）</span></div>
+<div class="hex-row">🕐 <span class="kr">들은 이야기</span> <span class="mean">聞いた話（듣다→들은）</span></div>
+<div class="hex-row">🕐 <span class="kr">사랑한 사람</span> <span class="mean">愛した人</span></div>
+<div class="hex-row">🔄 <span class="kr">듣는 노래</span> <span class="mean">聴いている歌</span></div>
+<div class="hex-row">🔄 <span class="kr">빛나는 별</span> <span class="mean">輝く星</span></div>
+<div class="hex-row">🔄 <span class="kr">걷는 길</span> <span class="mean">歩いている道</span></div>
+<div class="hex-row">🔮 <span class="kr">부를 노래</span> <span class="mean">歌うつもりの歌</span></div>
+<div class="hex-row">🔮 <span class="kr">갈 곳</span> <span class="mean">行くところ</span></div>
+<div class="hex-row">📌 <span class="kr">예쁜 꽃</span> <span class="mean">きれいな花（形容詞の現在）</span></div>
+<div class="hex-row">📌 <span class="kr">좋은 사람</span> <span class="mean">いい人（形容詞の現在）</span></div>
+<div class="hex-row">📌 <span class="kr">작은 별</span> <span class="mean">小さい星（形容詞の現在）</span></div>
+</div>
+<h4>〜아/어서（〜して・〜だから）</h4>
+<p>順序（〜して）と理由（〜だから）の2つの意味がある！</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">만나서 반가워</span> <span class="mean">会えて嬉しい（順序）</span></div>
+<div class="hex-row"><span class="kr">슬퍼서 울었어</span> <span class="mean">悲しくて泣いた（理由）</span></div>
+<div class="hex-row"><span class="kr">먹어서 배불러</span> <span class="mean">食べたからお腹いっぱい（理由）</span></div>
+<div class="hex-row"><span class="kr">일어나서 씻었어</span> <span class="mean">起きて洗った（順序）</span></div>
+<div class="hex-row"><span class="kr">좋아서 웃었어</span> <span class="mean">嬉しくて笑った（理由）</span></div>
+</div>
+<h4>〜(으)ㄹ게（〜するね・〜するよ）</h4>
+<p>自分の意志・約束を伝える。歌詞でよく出る！</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">갈게</span> <span class="mean">行くね</span></div>
+<div class="hex-row"><span class="kr">기다릴게</span> <span class="mean">待ってるね</span></div>
+<div class="hex-row"><span class="kr">지켜줄게</span> <span class="mean">守ってあげるよ</span></div>
+<div class="hex-row"><span class="kr">잊지 않을게</span> <span class="mean">忘れないよ</span></div>
+</div>
+<h4>〜(으)ㄹ 거야（〜するつもり・〜だろう）</h4>
+<p>未来の予定・推量を表す</p>
+<div class="hex">
+<div class="hex-row"><span class="kr">할 거야</span> <span class="mean">するつもり</span></div>
+<div class="hex-row"><span class="kr">될 거야</span> <span class="mean">なるはず・大丈夫だよ</span></div>
+<div class="hex-row"><span class="kr">괜찮을 거야</span> <span class="mean">大丈夫だろう</span></div>
+<div class="hex-row"><span class="kr">올 거야</span> <span class="mean">来るはず</span></div>
+</div>
+`}
+];
+function showHelp(){
+  const hs=document.getElementById('helpScreen');
+  hs.style.display='block';
+  // Nav buttons
+  document.getElementById('helpNav').innerHTML=helpSections.map((s,i)=>
+    `<button class="help-nav-btn${i===0?' active':''}" onclick="scrollHelpTo('${s.id}')">${s.title.split(' ').slice(1).join(' ')}</button>`).join('');
+  // Content
+  document.getElementById('helpBody').innerHTML=helpSections.map(s=>
+    `<div class="help-sec" id="help-${s.id}"><h3>${s.title}</h3>${s.content}</div>`).join('');
+  // Scroll spy for nav
+  hs.onscroll=()=>{
+    const tops=helpSections.map(s=>({id:s.id,top:document.getElementById('help-'+s.id)?.getBoundingClientRect().top||999}));
+    let active=tops[0].id;
+    for(const t of tops){if(t.top<150)active=t.id}
+    document.querySelectorAll('.help-nav-btn').forEach((b,i)=>b.classList.toggle('active',helpSections[i].id===active));
+  };
+}
+function scrollHelpTo(id){document.getElementById('help-'+id)?.scrollIntoView({behavior:'smooth',block:'start'})}
+function closeHelp(){document.getElementById('helpScreen').style.display='none'}
 
 // Timing
 function setTimingMode(m){timingMode=m;document.querySelectorAll('.sub-tab').forEach((el,i)=>el.classList.toggle('active',i===(m==='line'?0:1)));renderTimingContent()}
