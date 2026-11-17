@@ -685,7 +685,7 @@ function buildQuizPool(){
   songs.forEach(song=>{
     song.lines.forEach(line=>{
       line.words.forEach(w=>{
-        if(!w.meaning||!w.text)return;
+        if(!w.meaning||!w.text||w.pos==='eng')return;
         const key=w.text.trim();
         if(!seen.has(key)){
           seen.set(key,{text:w.text,reading:w.reading||'',meaning:w.meaning,pos:w.pos,songTitle:song.title});
@@ -730,7 +730,6 @@ function renderQuiz(){
   document.getElementById('quizContent').innerHTML=`
     <div class="quiz-question">
       <div class="quiz-word">${q.text}</div>
-      ${q.reading?`<div class="quiz-reading">${q.reading}</div>`:''}
       <span class="quiz-pos" style="background:${posInfo.bg};color:${posInfo.c}">${posInfo.l}</span>
     </div>
     <div class="quiz-choices" id="quizChoices">
