@@ -638,7 +638,23 @@ function parseT(v){if(!v||v==='--:--')return null;if(v.includes(':')){const[m,s]
 
 // Songs
 function renderSongList(){
-  document.getElementById('songList').innerHTML=songs.map((s,i)=>`<div class="song-item ${i===curSong?'current':''}" onclick="selSong(${i})"><span class="s-name">${s.title} — ${s.artist}</span></div>`).join('');
+  const el=document.getElementById('songList');
+  const groups={};const noAlbum=[];
+  songs.forEach((s,i)=>{if(s.album){if(!groups[s.album])groups[s.album]=[];groups[s.album].push(i)}else{noAlbum.push(i)}});
+  let html='';
+  const FOLD_MIN=2;
+  Object.keys(groups).forEach(album=>{
+    const idxs=groups[album];
+    if(idxs.length>=FOLD_MIN){
+      const hasCur=idxs.includes(curSong);
+      html+=`<details style="margin-bottom:8px"${hasCur?' open':''}><summary style="font-size:13px;font-weight:700;padding:10px 0;color:var(--text)">${album} <span style="font-size:11px;color:var(--text-dim)">(${idxs.length}曲)</span></summary>`;
+      idxs.forEach(i=>{const s=songs[i];html+=`<div class="song-item ${i===curSong?'current':''}" onclick="selSong(${i})"><span class="s-name">${s.title}</span></div>`});
+      html+='</details>';
+    }else{
+      idxs.forEach(i=>{const s=songs[i];html+=`<div class="song-item ${i===curSong?'current':''}" onclick="selSong(${i})"><span class="s-name">${s.title} · ${s.album}</span></div>`});
+    }});
+  noAlbum.forEach(i=>{const s=songs[i];html+=`<div class="song-item ${i===curSong?'current':''}" onclick="selSong(${i})"><span class="s-name">${s.title} — ${s.artist}</span></div>`});
+  el.innerHTML=html;
   checkMP3()}
 function selSong(i){openSong(i)}
 function exportAllData(){
