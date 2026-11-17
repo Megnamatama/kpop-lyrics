@@ -39,7 +39,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .legend{display:flex;flex-wrap:wrap;gap:5px;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:44px;z-index:40}
 .legend-item{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:600}
 .lyrics-container{padding:6px 10px}
-.lyric-line{background:var(--bg2);border-radius:10px;padding:10px;margin-bottom:6px;border:1px solid var(--border);transition:border-color .3s,box-shadow .3s;contain:content}
+.lyric-line{background:var(--bg2);border-radius:10px;padding:10px;margin-bottom:6px;border:1px solid var(--border);transition:border-color .3s,box-shadow .3s}
 .lyric-line.active{border-color:var(--accent);box-shadow:0 0 12px rgba(167,139,250,.25);opacity:1}
 .lyric-line.future{opacity:.65}
 .lyric-line.past{opacity:.25}
@@ -62,7 +62,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .player-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:6px 14px calc(6px + var(--safe-bottom));z-index:100}
 .progress-wrap{width:100%;height:24px;display:flex;align-items:center;cursor:pointer;touch-action:none;position:relative}
 .progress-bg{width:100%;height:4px;background:var(--bg3);border-radius:2px;position:relative}
-.progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;will-change:width;transform:translateZ(0)}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;width:0%}
 .player-controls{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
 .time-display{font-size:10px;color:var(--text-dim);font-variant-numeric:tabular-nums;min-width:32px}
 .play-btn{width:48px;height:48px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px}
@@ -126,17 +126,28 @@ details[open] summary::before{content:'▾ '}
 .menu-item:active{background:var(--bg3)}
 .opt-panel{overflow:hidden;max-height:0;transition:max-height .25s ease;margin-top:0}
 .opt-panel.open{max-height:120px;margin-top:4px}
-.word-block.pos-hidden .word-reading,.word-block.pos-hidden .word-meaning{visibility:hidden}
-.help-sec{margin-bottom:32px}.help-sec h3{font-size:16px;font-weight:700;color:var(--accent);margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--accent)}
-.help-sec h4{font-size:13px;font-weight:700;color:var(--text);margin:18px 0 8px;padding-left:4px;border-left:3px solid var(--accent)}
-.help-sec p,.help-sec li{font-size:12.5px;color:var(--text);line-height:1.8;padding:0 4px}
-.help-sec ul{padding-left:22px;margin:6px 0}
-.hex{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:10px 0;font-size:12.5px;line-height:2.1}
-.hex .kr{font-size:16px;font-weight:700;color:var(--accent)}.hex .arrow{color:var(--text-dim);margin:0 6px}
-.hex .mean{color:var(--text-dim);font-size:11px}
-.hex-row{display:flex;align-items:center;gap:6px;padding:3px 0;flex-wrap:wrap}
-.help-nav-btn{padding:5px 12px;border-radius:14px;border:1px solid var(--border);background:var(--bg2);color:var(--text-dim);font-size:11px;white-space:nowrap;cursor:pointer;flex-shrink:0}
-.help-nav-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.word-block.pos-hidden{display:none}
+.quiz-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;margin-bottom:16px;background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(244,114,182,.15));border:1px solid var(--accent);border-radius:12px;color:var(--accent);font-size:15px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.quiz-btn:active{transform:scale(.97);box-shadow:0 0 16px rgba(167,139,250,.3)}
+.quiz-screen{padding:16px}
+.quiz-question{text-align:center;padding:24px 16px;margin-bottom:16px}
+.quiz-word{font-size:36px;font-weight:800;margin-bottom:6px;line-height:1.3}
+.quiz-reading{font-size:14px;color:var(--text-dim);margin-bottom:2px}
+.quiz-pos{font-size:11px;padding:3px 10px;border-radius:12px;display:inline-block;margin-top:4px}
+.quiz-choices{display:flex;flex-direction:column;gap:8px;padding:0 4px}
+.quiz-choice{padding:14px 16px;background:var(--bg2);border:2px solid var(--border);border-radius:12px;font-size:15px;color:var(--text);cursor:pointer;text-align:left;transition:all .2s;font-weight:500}
+.quiz-choice:active{transform:scale(.98)}
+.quiz-choice.correct{border-color:#34d399;background:rgba(52,211,153,.15);color:#34d399}
+.quiz-choice.wrong{border-color:#ef4444;background:rgba(239,68,68,.15);color:#ef4444}
+.quiz-choice.reveal{border-color:#34d399;opacity:.6}
+.quiz-score{text-align:center;padding:8px;font-size:12px;color:var(--text-dim)}
+.quiz-next{display:block;width:100%;padding:14px;margin-top:16px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
+.quiz-next:active{opacity:.85}
+.quiz-result{text-align:center;padding:32px 16px}
+.quiz-result-emoji{font-size:64px;margin-bottom:12px}
+.quiz-result-text{font-size:20px;font-weight:700;margin-bottom:4px}
+.quiz-result-sub{font-size:13px;color:var(--text-dim);margin-bottom:20px}
+.quiz-from{font-size:10px;color:var(--text-dim);margin-top:8px}
 .mv-panel{background:var(--bg3);border-bottom:1px solid var(--border);overflow:hidden;position:sticky;top:77px;z-index:35}
 .mv-toggle{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px;font-size:11px;color:var(--text-dim);cursor:pointer;background:none;border:none;width:100%}
 .mv-video-wrap{max-height:0;overflow:hidden;transition:max-height .3s ease}
@@ -147,9 +158,8 @@ details[open] summary::before{content:'▾ '}
 </head>
 <body>
 <div class="app" id="app">
-  <div class="header" style="position:relative">
+  <div class="header">
     <h1>K-POPで韓国語</h1>
-    <button onclick="showHelp()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);border-radius:16px;color:#fff;font-size:11px;padding:5px 10px;cursor:pointer;font-weight:600">📖 ヘルプ</button>
     <div class="song-info" id="songTitle"></div>
   </div>
   <!-- HOME screen -->
@@ -158,12 +168,21 @@ details[open] summary::before{content:'▾ '}
       <div style="font-size:48px;margin-bottom:8px">🎵</div>
       <p style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:4px">曲を選んでスタート！</p>
       <p style="font-size:11px;color:var(--text-dim)">歌詞を見ながら韓国語を学ぼう</p>
-      <p style="font-size:9px;color:var(--text-dim);opacity:.5;margin-top:8px">🔧 10/27: 読み込み高速化・iOSハイライト先読み・スロー音質修正・品詞フィルター改良</p>
-
     </div>
-    <div class="section-pad" id="homeSongList">
-      <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">📡 読み込み中...</div>
+    <div class="section-pad">
+      <button class="quiz-btn" id="quizStartBtn" onclick="startQuiz()" style="display:none">🧠 単語クイズ</button>
+      <div id="homeSongList">
+        <div style="text-align:center;padding:20px;color:var(--text-dim);font-size:12px">📡 読み込み中...</div>
+      </div>
     </div>
+  </div>
+  <!-- QUIZ screen -->
+  <div id="quizScreen" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border)">
+      <button class="back-btn" onclick="exitQuiz()">← 戻る</button>
+      <div class="quiz-score" id="quizScore"></div>
+    </div>
+    <div class="quiz-screen" id="quizContent"></div>
   </div>
   <!-- PLAYER screen (hidden initially) -->
   <div id="playerScreen" style="display:none">
@@ -260,18 +279,6 @@ details[open] summary::before{content:'▾ '}
 <input type="file" id="audioFileInput" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac,.flac">
 <audio id="audioPlayer"></audio>
 <div id="modalRoot"></div>
-<!-- HELP screen -->
-<div id="helpScreen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto;-webkit-overflow-scrolling:touch">
-  <div style="position:sticky;top:0;background:var(--bg);z-index:10;padding:env(safe-area-inset-top,0) 16px 0;border-bottom:1px solid var(--border)">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
-      <button onclick="closeHelp()" style="background:none;border:none;color:var(--accent);font-size:14px;font-weight:600;cursor:pointer">← 戻る</button>
-      <span style="font-size:15px;font-weight:700;color:var(--text)">📖 韓国語ヘルプ</span>
-      <span style="width:40px"></span>
-    </div>
-    <div id="helpNav" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch"></div>
-  </div>
-  <div style="padding:16px;max-width:480px;margin:0 auto" id="helpBody"></div>
-</div>
 
 <script>
 const POS={noun:{l:'名詞',c:'#f472b6',bg:'rgba(244,114,182,.2)'},particle:{l:'助詞',c:'#60a5fa',bg:'rgba(96,165,250,.2)'},verb:{l:'動詞',c:'#34d399',bg:'rgba(52,211,153,.2)'},adj:{l:'形容詞',c:'#fbbf24',bg:'rgba(251,191,36,.2)'},adv:{l:'副詞',c:'#fb923c',bg:'rgba(251,146,60,.2)'},pronoun:{l:'代名詞',c:'#38bdf8',bg:'rgba(56,189,248,.2)'},ending:{l:'語尾',c:'#a78bfa',bg:'rgba(167,139,250,.2)'},eng:{l:'英語',c:'#94a3b8',bg:'rgba(148,163,184,.12)'}};
@@ -314,13 +321,14 @@ async function loadFromSheets(){
     const rows=parseCSV(txt);
     if(!rows.length){document.getElementById('lyricsDisplay').innerHTML='<div style="text-align:center;padding:40px;color:var(--text-dim)">曲データがありません</div>';return}
     songs=rows.map(r=>({id:r.id||'',title:r.title||'',artist:r.artist||'',album:r.album||'',videoUrl:r.video_url||'',videoOffset:parseFloat(r.video_offset)||0,lines:[]}));
-    // Load all songs' lyrics in parallel
-    await Promise.all(songs.map(async(song,i)=>{
+    // Load each song's lyrics
+    for(let i=0;i<songs.length;i++){
       try{
-        const r2=await fetch(csvURL(song.id));
+        const r2=await fetch(csvURL(songs[i].id));
         if(!r2.ok)throw new Error('song fetch failed: '+r2.status);
         const t2=await r2.text();
         const lRows=parseCSV(t2);
+        // Group by line number
         const lineMap={};
         lRows.forEach(r=>{
           const ln=parseInt(r.line)||0;if(!ln)return;
@@ -331,8 +339,8 @@ async function loadFromSheets(){
           const wt=parseFloat(r.word_time);
           lineMap[ln].words.push({text:r.text||'',reading:r.reading||'',meaning:r.meaning||'',pos:r.pos||'noun',time:isNaN(wt)?null:wt})});
         songs[i].lines=Object.keys(lineMap).sort((a,b)=>a-b).map(k=>({time:lineMap[k].lineTime,translation:lineMap[k].translation,bgText:lineMap[k].bgText,words:lineMap[k].words}));
-      }catch(e){console.warn('Failed to load song:',song.id,e)}
-    }));
+      }catch(e){console.warn('Failed to load song:',songs[i].id,e)}
+    }
     // Merge saved timing data from localStorage
     loadTimings();
     renderHome();
@@ -447,62 +455,29 @@ function renderLyrics(){
   c.innerHTML=s.lines.map((l,i)=>{
     const wh=l.words.map((w,j)=>`<div class="word-block pos-${w.pos}" id="wb-${i}-${j}"><div class="word-reading">${w.reading||''}</div><span class="word-text">${w.text}</span><div class="word-meaning">${w.meaning||''}</div></div>`).join('');
     const clickAttr=l.time!==null?`onclick="seekToLine(${i})" style="cursor:pointer"`:'';
-    return `<div class="lyric-line future" id="line-${i}" ${clickAttr}><div class="words-row">${wh}</div>${l.translation?`<div class="line-translation">${l.translation}</div>`:''}${l.bgText?`<div class="line-bg">♪ ${l.bgText}</div>`:''}</div>`}).join('');
-  // Reset cached highlight refs since DOM was rebuilt
-  _prevActiveLine=null;_prevActiveWord=null;curLine=-1;curWord=-1}
+    return `<div class="lyric-line" id="line-${i}" ${clickAttr}><div class="words-row">${wh}</div>${l.translation?`<div class="line-translation">${l.translation}</div>`:''}${l.bgText?`<div class="line-bg">♪ ${l.bgText}</div>`:''}</div>`}).join('')}
 
-// Sync (optimized: predictive time to beat iOS currentTime lag)
-const _pFill=document.getElementById('progressFill');
-const _cTime=document.getElementById('currentTime');
-const _mvWrap=document.getElementById('mvVideoWrap');
-let _lastPct=-1,_lastTimeTxt='',_mvSyncCounter=0;
-// Predictive time: track when currentTime last changed and extrapolate
-let _lastKnownTime=0,_lastKnownAt=0,_lastRawTime=-1;
-function getPredictedTime(){
-  const raw=audio.currentTime;
-  const now=performance.now()/1000;
-  if(raw!==_lastRawTime){_lastKnownTime=raw;_lastKnownAt=now;_lastRawTime=raw}
-  if(audio.paused||!_isIOS)return raw;
-  // On iOS, predict ahead based on elapsed wall-clock time and playback rate
-  const elapsed=(now-_lastKnownAt)*audio.playbackRate;
-  return Math.min(_lastKnownTime+elapsed,audio.duration||Infinity);
-}
+// Sync
 function animLoop(){
   if(audio.src&&audio.duration){
-    const ct=getPredictedTime(),dur=audio.duration;
-    if(abState===2&&abA!==null&&abB!==null&&ct>=abB){audio.currentTime=abA}
-    const pct=((ct/dur)*100).toFixed(1);
-    if(pct!==_lastPct){_pFill.style.width=pct+'%';_lastPct=pct}
-    const tt=fmt(ct,true);if(tt!==_lastTimeTxt){_cTime.textContent=tt;_lastTimeTxt=tt}
-    syncHL(ct);
-    // MV sync every 3 frames instead of every frame
-    if(++_mvSyncCounter>=3){_mvSyncCounter=0;
-      const v=getMV();if(v&&!audio.paused&&_mvWrap.classList.contains('open')){const target=ct+songs[curSong].videoOffset;if(target<0){if(!v.paused)v.pause()}else{if(v.paused)v.play().catch(()=>{});if(Math.abs(v.currentTime-target)>.3){v.currentTime=target}}}}}
+    if(abState===2&&abA!==null&&abB!==null&&audio.currentTime>=abB){audio.currentTime=abA}
+    document.getElementById('progressFill').style.width=((audio.currentTime/audio.duration)*100)+'%';
+    document.getElementById('currentTime').textContent=fmt(audio.currentTime,true);
+    syncHL(audio.currentTime);
+    const v=getMV();if(v&&!audio.paused&&document.getElementById('mvVideoWrap').classList.contains('open')){const target=audio.currentTime+songs[curSong].videoOffset;if(target<0){if(!v.paused)v.pause()}else{if(v.paused)v.play().catch(()=>{});if(Math.abs(v.currentTime-target)>.3){v.currentTime=target}}}}
   requestAnimationFrame(animLoop)}
 requestAnimationFrame(animLoop);
 audio.addEventListener('loadedmetadata',()=>document.getElementById('totalTime').textContent=fmt(audio.duration,true));
 audio.addEventListener('ended',()=>{if(loopOn){audio.currentTime=0;audio.play();const v=getMV();if(v){v.currentTime=songs[curSong].videoOffset;v.play().catch(()=>{})}}else{syncMV(false);document.getElementById('playBtn').textContent='▶'}});
 
-let _prevActiveWord=null,_prevActiveLine=null;
 function syncHL(t){
   const s=songs[curSong];let aL=-1;
   for(let i=s.lines.length-1;i>=0;i--){if(s.lines[i].time!==null&&t>=s.lines[i].time){aL=i;break}}
   let aW=-1;
   if(aL>=0){const ws=s.lines[aL].words;for(let j=ws.length-1;j>=0;j--){if(ws[j].time!==null&&t>=ws[j].time){aW=j;break}}}
-  if(aL!==curLine){
-    if(_prevActiveLine){_prevActiveLine.classList.remove('active');_prevActiveLine.classList.add('past')}
-    if(curLine>=0&&aL>curLine+1){for(let i=curLine+1;i<aL;i++){const el=document.getElementById('line-'+i);if(el){el.classList.remove('future');el.classList.add('past')}}}
-    curLine=aL;
-    const newEl=aL>=0?document.getElementById('line-'+aL):null;
-    if(newEl){
-      newEl.classList.remove('past','future');newEl.classList.add('active');
-      _prevActiveLine=newEl;
-      newEl.scrollIntoView({behavior:'smooth',block:'center'})}
-    else{_prevActiveLine=null}
-  }
-  if(aW!==curWord){
-    if(_prevActiveWord){_prevActiveWord.classList.remove('word-active');_prevActiveWord=null}
-    if(aL>=0&&aW>=0){const el=document.getElementById(`wb-${aL}-${aW}`);if(el){el.classList.add('word-active');_prevActiveWord=el}}}
+  if(aL!==curLine){curLine=aL;document.querySelectorAll('.lyric-line').forEach((el,i)=>{el.classList.remove('active','past','future');if(i===aL){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'center'})}else if(i<aL){el.classList.add('past')}else{el.classList.add('future')}})}
+  document.querySelectorAll('.word-block').forEach(el=>el.classList.remove('word-active'));
+  if(aL>=0&&aW>=0){const el=document.getElementById(`wb-${aL}-${aW}`);if(el)el.classList.add('word-active')}
   curWord=aW}
 
 // Player
@@ -521,14 +496,8 @@ pw.addEventListener('touchend',()=>{drag=false;setTimeout(hideTooltip,500)});
 
 function getMV(){const el=document.getElementById('mvVideoWrap');return el?el.querySelector('video'):null}
 function syncMV(playing){const v=getMV();if(!v)return;const wrap=document.getElementById('mvVideoWrap');if(!wrap.classList.contains('open'))return;if(playing){const target=audio.currentTime+songs[curSong].videoOffset;if(target<0){v.currentTime=0;v.pause()}else{v.currentTime=target;v.play().catch(()=>{})}}else{v.pause()}}
-const _isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
 function togglePlay(){if(!audio.src){document.getElementById('audioFileInput').click();return}if(audio.paused){audio.play();syncMV(true);document.getElementById('playBtn').textContent='⏸'}else{audio.pause();syncMV(false);document.getElementById('playBtn').textContent='▶'}}
-function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));const spd=speeds[speedIdx];audio.playbackRate=spd;
-  audio.preservesPitch=true;audio.webkitPreservesPitch=true;
-  // iOS pitch correction boosts gain ~1.7x at slow speeds — compensate to prevent distortion
-  if(_isIOS&&spd<1){audio.volume=spd===0.5?0.55:0.5}else{audio.volume=1}
-  const v=getMV();if(v){v.playbackRate=spd;v.preservesPitch=true;v.webkitPreservesPitch=true}
-  document.getElementById('speedDisplay').textContent=spd+'×'}
+function changeSpeed(dir){speedIdx=Math.max(0,Math.min(speeds.length-1,speedIdx+dir));audio.playbackRate=speeds[speedIdx];const v=getMV();if(v)v.playbackRate=speeds[speedIdx];document.getElementById('speedDisplay').textContent=speeds[speedIdx]+'×'}
 
 function toggleOpt(){document.getElementById('optPanel').classList.toggle('open')}
 
@@ -542,11 +511,7 @@ function toggleAB(){
 function togglePosFilter(pos){
   if(hiddenPos.has(pos)){hiddenPos.delete(pos)}else{hiddenPos.add(pos)}
   renderLegend();applyPosFilter()}
-function applyPosFilter(){
-  // Use a dynamic style rule instead of iterating all word-block elements
-  let styleEl=document.getElementById('posFilterStyle');
-  if(!styleEl){styleEl=document.createElement('style');styleEl.id='posFilterStyle';document.head.appendChild(styleEl)}
-  styleEl.textContent=[...hiddenPos].map(p=>`.word-block.pos-${p} .word-reading,.word-block.pos-${p} .word-meaning{visibility:hidden}`).join('')}
+function applyPosFilter(){document.querySelectorAll('.word-block').forEach(el=>{const p=Array.from(el.classList).find(c=>c.startsWith('pos-'));if(p){const pos=p.replace('pos-','');el.classList.toggle('pos-hidden',hiddenPos.has(pos))}})}
 
 document.getElementById('audioFileInput').addEventListener('change',async function(e){
   const f=e.target.files[0];if(!f)return;
@@ -632,285 +597,6 @@ function doPaste(mode){
   alert(`${ls.length}行を${modeText}しました！\n助詞（는/을/에 等）は自動分離済み。\n歌詞編集タブで確認・修正してください。`)}
 function closeM(){document.getElementById('modalRoot').innerHTML=''}
 
-// === HELP PAGE ===
-const helpSections=[
-{id:'vowel',title:'🔤 二重母音',content:`
-<p>2つの母音を組み合わせた音。素早く繋げて1音で発音する！</p>
-<h4>ㅘ・ㅙ・ㅚ（ㅗ系）</h4>
-<div class="hex">
-<div class="hex-row"><span class="kr">ㅘ</span> = ㅗ + ㅏ <span class="mean">→「ワ」</span></div>
-<div class="hex-row"><span class="kr">ㅙ</span> = ㅗ + ㅐ <span class="mean">→「ウェ」</span></div>
-<div class="hex-row"><span class="kr">ㅚ</span> = ㅗ + ㅣ <span class="mean">→「ウェ」(実際はㅙと同じ発音)</span></div>
-</div>
-<div class="hex">
-<div class="hex-row"><span class="kr">왜</span> <span class="mean">なぜ</span></div>
-<div class="hex-row"><span class="kr">외국</span> <span class="mean">外国</span></div>
-<div class="hex-row"><span class="kr">과자</span> <span class="mean">お菓子</span></div>
-<div class="hex-row"><span class="kr">사과</span> <span class="mean">りんご・謝罪</span></div>
-<div class="hex-row"><span class="kr">회사</span> <span class="mean">会社</span></div>
-</div>
-<h4>ㅝ・ㅞ・ㅟ（ㅜ系）</h4>
-<div class="hex">
-<div class="hex-row"><span class="kr">ㅝ</span> = ㅜ + ㅓ <span class="mean">→「ウォ」</span></div>
-<div class="hex-row"><span class="kr">ㅞ</span> = ㅜ + ㅔ <span class="mean">→「ウェ」</span></div>
-<div class="hex-row"><span class="kr">ㅟ</span> = ㅜ + ㅣ <span class="mean">→「ウィ」</span></div>
-</div>
-<div class="hex">
-<div class="hex-row"><span class="kr">뭐</span> <span class="mean">何</span></div>
-<div class="hex-row"><span class="kr">위</span> <span class="mean">上</span></div>
-<div class="hex-row"><span class="kr">귀</span> <span class="mean">耳</span></div>
-<div class="hex-row"><span class="kr">쉬다</span> <span class="mean">休む</span></div>
-<div class="hex-row"><span class="kr">권리</span> <span class="mean">権利</span></div>
-</div>
-<h4>ㅢ</h4>
-<div class="hex">
-<div class="hex-row"><span class="kr">ㅢ</span> = ㅡ + ㅣ <span class="mean">→「ウィ」だが位置で変わる!</span></div>
-<div class="hex-row">・語頭: 의사 → <span class="kr">ウィサ</span> <span class="mean">(医者)</span></div>
-<div class="hex-row">・語中: 회의 → <span class="kr">フェイ</span> <span class="mean">(会議) ※ㅣの音になる</span></div>
-<div class="hex-row">・「〜の」: 나의 → <span class="kr">ナエ</span> <span class="mean">(私の) ※ㅔの音になる</span></div>
-</div>
-`},
-{id:'conjugation',title:'✏️ 語尾の活用',content:`
-<h4>해요体（丁寧カジュアル）</h4>
-<p>語幹 + <b>아/어요</b>。一番よく使う形！</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">가다</span> <span class="arrow">→</span> <span class="kr">가요</span> <span class="mean">行きます（ㅏだから아요→縮めて가요）</span></div>
-<div class="hex-row"><span class="kr">먹다</span> <span class="arrow">→</span> <span class="kr">먹어요</span> <span class="mean">食べます（ㅓだから어요）</span></div>
-<div class="hex-row"><span class="kr">하다</span> <span class="arrow">→</span> <span class="kr">해요</span> <span class="mean">します（하+여요→해요 特別！）</span></div>
-<div class="hex-row"><span class="kr">오다</span> <span class="arrow">→</span> <span class="kr">와요</span> <span class="mean">来ます（ㅗ+아→와）</span></div>
-<div class="hex-row"><span class="kr">보다</span> <span class="arrow">→</span> <span class="kr">봐요</span> <span class="mean">見ます（ㅗ+아→와）</span></div>
-</div>
-<h4>합니다体（フォーマル）</h4>
-<p>パッチムあり → 語幹+<b>습니다</b><br>パッチムなし → 語幹+<b>ㅂ니다</b></p>
-<div class="hex">
-<div class="hex-row"><span class="kr">먹다</span> <span class="arrow">→</span> <span class="kr">먹습니다</span> <span class="mean">食べます（パッチムあり）</span></div>
-<div class="hex-row"><span class="kr">가다</span> <span class="arrow">→</span> <span class="kr">갑니다</span> <span class="mean">行きます（パッチムなし→ㅂを付ける）</span></div>
-<div class="hex-row"><span class="kr">읽다</span> <span class="arrow">→</span> <span class="kr">읽습니다</span> <span class="mean">読みます</span></div>
-<div class="hex-row"><span class="kr">사랑하다</span> <span class="arrow">→</span> <span class="kr">사랑합니다</span> <span class="mean">愛しています</span></div>
-</div>
-<h4>반말（タメ口）— 歌詞でよく出る！</h4>
-<p><b>해요</b>体から<b>요</b>を取るだけ！</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">가요</span> <span class="arrow">→</span> <span class="kr">가</span> <span class="mean">行く</span></div>
-<div class="hex-row"><span class="kr">해요</span> <span class="arrow">→</span> <span class="kr">해</span> <span class="mean">する</span></div>
-<div class="hex-row"><span class="kr">몰라요</span> <span class="arrow">→</span> <span class="kr">몰라</span> <span class="mean">知らない</span></div>
-</div>
-<h4>過去形</h4>
-<p>語幹 + <b>았/었</b> + <b>어요</b></p>
-<div class="hex">
-<div class="hex-row"><span class="kr">가다</span> <span class="arrow">→</span> <span class="kr">갔어요</span> <span class="mean">行きました（가+았→갔）</span></div>
-<div class="hex-row"><span class="kr">먹다</span> <span class="arrow">→</span> <span class="kr">먹었어요</span> <span class="mean">食べました</span></div>
-<div class="hex-row"><span class="kr">하다</span> <span class="arrow">→</span> <span class="kr">했어요</span> <span class="mean">しました（하+였→했）</span></div>
-</div>
-`},
-{id:'aoeo',title:'🔄 아/어の変化',content:`
-<p>語幹の最後の母音で <b>아</b> か <b>어</b> か決まる！</p>
-<h4>基本ルール</h4>
-<div class="hex">
-<div class="hex-row">語幹の最後の母音が <span class="kr">ㅏ・ㅗ</span> <span class="arrow">→</span> <span class="kr">아</span></div>
-<div class="hex-row">それ以外 <span class="arrow">→</span> <span class="kr">어</span></div>
-</div>
-<h4>縮約パターン</h4>
-<div class="hex">
-<div class="hex-row"><span class="kr">ㅏ + 아</span> → <span class="kr">ㅏ</span> <span class="mean">가+아요 → 가요</span></div>
-<div class="hex-row"><span class="kr">ㅗ + 아</span> → <span class="kr">ㅘ</span> <span class="mean">오+아요 → 와요</span></div>
-<div class="hex-row"><span class="kr">ㅜ + 어</span> → <span class="kr">ㅝ</span> <span class="mean">배우+어요 → 배워요</span></div>
-<div class="hex-row"><span class="kr">ㅣ + 어</span> → <span class="kr">ㅕ</span> <span class="mean">기다리+어요 → 기다려요</span></div>
-<div class="hex-row"><span class="kr">ㅡ + 어</span> → <span class="kr">ㅓ</span> <span class="mean">쓰+어요 → 써요（ㅡが消える！）</span></div>
-<div class="hex-row"><span class="kr">ㅐ + 어</span> → <span class="kr">ㅐ</span> <span class="mean">보내+어요 → 보내요（変わらない）</span></div>
-</div>
-<h4>하다の特別変化</h4>
-<div class="hex">
-<div class="hex-row"><span class="kr">하 + 여</span> → <span class="kr">해</span> <span class="mean">하다動詞は全部이パターン</span></div>
-<div class="hex-row">例: <span class="kr">사랑하다</span> → <span class="kr">사랑해</span> <span class="mean">愛する</span></div>
-</div>
-`},
-{id:'patchim2',title:'🧱 二重パッチム',content:`
-<p>パッチム（終声）に子音が2つあるやつ！<br>単独で読む時は、どちらか片方だけ発音する。</p>
-<h4>左を読むグループ</h4>
-<div class="hex">
-<div class="hex-row"><span class="kr">ㄳ</span> <span class="arrow">→</span> ㄱで読む <span class="mean">몫 [목] 分け前</span></div>
-<div class="hex-row"><span class="kr">ㄵ</span> <span class="arrow">→</span> ㄴで読む <span class="mean">앉다 [안다] 座る</span></div>
-<div class="hex-row"><span class="kr">ㄼ</span> <span class="arrow">→</span> ㄹで読む <span class="mean">짧다 [짤다] 短い</span></div>
-<div class="hex-row"><span class="kr">ㄽ</span> <span class="arrow">→</span> ㄹで読む <span class="mean">외곬 [외골] 一筋</span></div>
-<div class="hex-row"><span class="kr">ㄾ</span> <span class="arrow">→</span> ㄹで読む <span class="mean">핥다 [할다] 舐める</span></div>
-<div class="hex-row"><span class="kr">ㅄ</span> <span class="arrow">→</span> ㅂで読む <span class="mean">없다 [업다] ない</span></div>
-</div>
-<p style="font-size:11px;color:var(--text-dim);padding:4px 8px">⚠️ 例外: 밟다 → [밥다]（ㄼだけど右のㅂで読む）</p>
-<h4>右を読むグループ</h4>
-<div class="hex">
-<div class="hex-row"><span class="kr">ㄺ</span> <span class="arrow">→</span> ㄱで読む <span class="mean">읽다 [익다] 読む</span></div>
-<div class="hex-row"><span class="kr">ㄻ</span> <span class="arrow">→</span> ㅁで読む <span class="mean">삶 [삼] 人生</span></div>
-<div class="hex-row"><span class="kr">ㄿ</span> <span class="arrow">→</span> ㅂで読む <span class="mean">읊다 [읍다] 詠む</span></div>
-</div>
-<h4>次に母音が来たら？</h4>
-<p>両方読む！ 左はそのまま残り、右が次の音節の頭に移動する。</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">읽어요</span> <span class="arrow">→</span> <span class="kr">[일거요]</span> <span class="mean">読みます</span></div>
-<div class="hex-row"><span class="kr">없어요</span> <span class="arrow">→</span> <span class="kr">[업서요]</span> <span class="mean">ないです</span></div>
-<div class="hex-row"><span class="kr">앉아요</span> <span class="arrow">→</span> <span class="kr">[안자요]</span> <span class="mean">座ります</span></div>
-</div>
-`},
-{id:'pronunciation',title:'🗣 発音変化',content:`
-<h4>連音化（리에종）</h4>
-<p><b>パッチム</b> + <b>母音</b> → パッチムが<b>次の音節の頭に移動</b></p>
-<div class="hex">
-<div class="hex-row"><span class="kr">음악</span> <span class="arrow">→</span> <span class="kr">[으막]</span> <span class="mean">音楽</span></div>
-<div class="hex-row"><span class="kr">한국어</span> <span class="arrow">→</span> <span class="kr">[한구거]</span> <span class="mean">韓国語</span></div>
-<div class="hex-row"><span class="kr">같이</span> <span class="arrow">→</span> <span class="kr">[가치]</span> <span class="mean">一緒に ※ㅌ+이→치</span></div>
-<div class="hex-row"><span class="kr">목요일</span> <span class="arrow">→</span> <span class="kr">[모교일]</span> <span class="mean">木曜日</span></div>
-<div class="hex-row"><span class="kr">없어</span> <span class="arrow">→</span> <span class="kr">[업서]</span> <span class="mean">ない</span></div>
-</div>
-<h4>鼻音化</h4>
-<p><b>ㄱ/ㄷ/ㅂ</b> + <b>ㄴ/ㅁ</b> → <b>ㅇ/ㄴ/ㅁ</b> に変わる</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">학문</span> <span class="arrow">→</span> <span class="kr">[항문]</span> <span class="mean">学問（ㄱ→ㅇ）</span></div>
-<div class="hex-row"><span class="kr">받는</span> <span class="arrow">→</span> <span class="kr">[반는]</span> <span class="mean">受ける（ㄷ→ㄴ）</span></div>
-<div class="hex-row"><span class="kr">입문</span> <span class="arrow">→</span> <span class="kr">[임문]</span> <span class="mean">入門（ㅂ→ㅁ）</span></div>
-</div>
-<h4>激音化</h4>
-<p><b>ㄱ/ㄷ/ㅂ/ㅈ</b> + <b>ㅎ</b>（またはその逆）→ 激音 <b>ㅋ/ㅌ/ㅍ/ㅊ</b> に変化！</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">좋다</span> <span class="arrow">→</span> <span class="kr">[조타]</span> <span class="mean">良い（ㅎ+ㄷ→ㅌ）</span></div>
-<div class="hex-row"><span class="kr">축하</span> <span class="arrow">→</span> <span class="kr">[추카]</span> <span class="mean">祝い（ㄱ+ㅎ→ㅋ）</span></div>
-<div class="hex-row"><span class="kr">입학</span> <span class="arrow">→</span> <span class="kr">[이팍]</span> <span class="mean">入学（ㅂ+ㅎ→ㅍ）</span></div>
-</div>
-<h4>濃音化</h4>
-<p>パッチム（<b>ㄱ/ㄷ/ㅂ</b>）の後の子音が<b>濃音</b>に変わる</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">학교</span> <span class="arrow">→</span> <span class="kr">[학꾜]</span> <span class="mean">学校</span></div>
-<div class="hex-row"><span class="kr">식당</span> <span class="arrow">→</span> <span class="kr">[식땅]</span> <span class="mean">食堂</span></div>
-<div class="hex-row"><span class="kr">접시</span> <span class="arrow">→</span> <span class="kr">[접씨]</span> <span class="mean">皿</span></div>
-</div>
-<h4>口蓋音化</h4>
-<p><b>ㄷ/ㅌ</b> + <b>이</b> → <b>ㅈ/ㅊ</b> に変化</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">같이</span> <span class="arrow">→</span> <span class="kr">[가치]</span> <span class="mean">一緒に</span></div>
-<div class="hex-row"><span class="kr">굳이</span> <span class="arrow">→</span> <span class="kr">[구지]</span> <span class="mean">あえて</span></div>
-</div>
-<h4>ㅎの弱化・脱落</h4>
-<p>母音 + <b>ㅎ</b> + 母音 → <b>ㅎが消える</b></p>
-<div class="hex">
-<div class="hex-row"><span class="kr">좋아</span> <span class="arrow">→</span> <span class="kr">[조아]</span> <span class="mean">好き</span></div>
-<div class="hex-row"><span class="kr">놓아</span> <span class="arrow">→</span> <span class="kr">[노아]</span> <span class="mean">置く</span></div>
-</div>
-`},
-{id:'grammar',title:'📚 頻出文法',content:`
-<h4>〜고 싶다（〜したい）</h4>
-<p>語幹にそのまま <b>고 싶다</b> をつけるだけ！</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">가고 싶어</span> <span class="mean">行きたい</span></div>
-<div class="hex-row"><span class="kr">보고 싶어</span> <span class="mean">会いたい（見たい）</span></div>
-<div class="hex-row"><span class="kr">알고 싶어</span> <span class="mean">知りたい</span></div>
-<div class="hex-row"><span class="kr">듣고 싶어</span> <span class="mean">聞きたい</span></div>
-<div class="hex-row"><span class="kr">말하고 싶어</span> <span class="mean">言いたい・話したい</span></div>
-</div>
-<h4>〜(으)ㄹ 수 있다/없다（〜できる/できない）</h4>
-<p>パッチムなし → <b>ㄹ 수</b><br>パッチムあり → <b>을 수</b></p>
-<div class="hex">
-<div class="hex-row"><span class="kr">할 수 있어</span> <span class="mean">できる</span></div>
-<div class="hex-row"><span class="kr">갈 수 없어</span> <span class="mean">行けない</span></div>
-<div class="hex-row"><span class="kr">믿을 수 있어</span> <span class="mean">信じられる（パッチムあり→을）</span></div>
-<div class="hex-row"><span class="kr">볼 수 있어</span> <span class="mean">見られる</span></div>
-<div class="hex-row"><span class="kr">찾을 수 없어</span> <span class="mean">見つけられない</span></div>
-</div>
-<h4>〜지 마（〜しないで）</h4>
-<p>語幹 + <b>지 마</b>。歌詞に超頻出！</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">가지 마</span> <span class="mean">行かないで</span></div>
-<div class="hex-row"><span class="kr">울지 마</span> <span class="mean">泣かないで</span></div>
-<div class="hex-row"><span class="kr">걱정하지 마</span> <span class="mean">心配しないで</span></div>
-<div class="hex-row"><span class="kr">잊지 마</span> <span class="mean">忘れないで</span></div>
-<div class="hex-row"><span class="kr">놓지 마</span> <span class="mean">離さないで</span></div>
-</div>
-<h4>〜(으)니까（〜だから）</h4>
-<p>理由を言う時に。<br>パッチムなし → <b>니까</b><br>パッチムあり → <b>으니까</b></p>
-<div class="hex">
-<div class="hex-row"><span class="kr">바쁘니까</span> <span class="mean">忙しいから</span></div>
-<div class="hex-row"><span class="kr">좋으니까</span> <span class="mean">いいから（パッチムあり→으니까）</span></div>
-<div class="hex-row"><span class="kr">알으니까</span> <span class="mean">知ってるから</span></div>
-<div class="hex-row"><span class="kr">추우니까</span> <span class="mean">寒いから</span></div>
-</div>
-<h4>〜(으)면（〜なら/〜たら）</h4>
-<p>仮定・条件。<br>パッチムなし → <b>면</b><br>パッチムあり → <b>으면</b></p>
-<div class="hex">
-<div class="hex-row"><span class="kr">가면</span> <span class="mean">行ったら</span></div>
-<div class="hex-row"><span class="kr">있으면</span> <span class="mean">あったら</span></div>
-<div class="hex-row"><span class="kr">만나면</span> <span class="mean">会ったら</span></div>
-<div class="hex-row"><span class="kr">들으면</span> <span class="mean">聞いたら</span></div>
-<div class="hex-row"><span class="kr">괜찮으면</span> <span class="mean">大丈夫なら</span></div>
-</div>
-<h4>〜고 있다（〜している）</h4>
-<p>進行中を表す。語幹 + <b>고 있다</b></p>
-<div class="hex">
-<div class="hex-row"><span class="kr">듣고 있어</span> <span class="mean">聴いている</span></div>
-<div class="hex-row"><span class="kr">기다리고 있어</span> <span class="mean">待っている</span></div>
-<div class="hex-row"><span class="kr">생각하고 있어</span> <span class="mean">考えている</span></div>
-<div class="hex-row"><span class="kr">웃고 있어</span> <span class="mean">笑っている</span></div>
-</div>
-<h4>連体形 〜ㄴ/는/ㄹ（名詞を修飾する形）</h4>
-<p>日本語の「〜した○○」「〜する○○」にあたる形。<br>動詞・形容詞を名詞の前に置く時に使う！</p>
-<p style="font-size:11.5px;color:var(--text);padding:4px 8px;line-height:1.9"><b>🕐 過去</b>（動詞）: 語幹 + (으)ㄴ<br><b>🔄 現在</b>（動詞）: 語幹 + 는<br><b>🔮 未来・推量</b>: 語幹 + (으)ㄹ<br><b>📌 形容詞の現在</b>: 語幹 + (으)ㄴ ※動詞の過去と同じ形！</p>
-<div class="hex">
-<div class="hex-row">🕐 <span class="kr">만든 노래</span> <span class="mean">作った歌（만들다→만든）</span></div>
-<div class="hex-row">🕐 <span class="kr">들은 이야기</span> <span class="mean">聞いた話（듣다→들은）</span></div>
-<div class="hex-row">🕐 <span class="kr">사랑한 사람</span> <span class="mean">愛した人</span></div>
-<div class="hex-row">🔄 <span class="kr">듣는 노래</span> <span class="mean">聴いている歌</span></div>
-<div class="hex-row">🔄 <span class="kr">빛나는 별</span> <span class="mean">輝く星</span></div>
-<div class="hex-row">🔄 <span class="kr">걷는 길</span> <span class="mean">歩いている道</span></div>
-<div class="hex-row">🔮 <span class="kr">부를 노래</span> <span class="mean">歌うつもりの歌</span></div>
-<div class="hex-row">🔮 <span class="kr">갈 곳</span> <span class="mean">行くところ</span></div>
-<div class="hex-row">📌 <span class="kr">예쁜 꽃</span> <span class="mean">きれいな花（形容詞の現在）</span></div>
-<div class="hex-row">📌 <span class="kr">좋은 사람</span> <span class="mean">いい人（形容詞の現在）</span></div>
-<div class="hex-row">📌 <span class="kr">작은 별</span> <span class="mean">小さい星（形容詞の現在）</span></div>
-</div>
-<h4>〜아/어서（〜して・〜だから）</h4>
-<p>順序（〜して）と理由（〜だから）の2つの意味がある！</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">만나서 반가워</span> <span class="mean">会えて嬉しい（順序）</span></div>
-<div class="hex-row"><span class="kr">슬퍼서 울었어</span> <span class="mean">悲しくて泣いた（理由）</span></div>
-<div class="hex-row"><span class="kr">먹어서 배불러</span> <span class="mean">食べたからお腹いっぱい（理由）</span></div>
-<div class="hex-row"><span class="kr">일어나서 씻었어</span> <span class="mean">起きて洗った（順序）</span></div>
-<div class="hex-row"><span class="kr">좋아서 웃었어</span> <span class="mean">嬉しくて笑った（理由）</span></div>
-</div>
-<h4>〜(으)ㄹ게（〜するね・〜するよ）</h4>
-<p>自分の意志・約束を伝える。歌詞でよく出る！</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">갈게</span> <span class="mean">行くね</span></div>
-<div class="hex-row"><span class="kr">기다릴게</span> <span class="mean">待ってるね</span></div>
-<div class="hex-row"><span class="kr">지켜줄게</span> <span class="mean">守ってあげるよ</span></div>
-<div class="hex-row"><span class="kr">잊지 않을게</span> <span class="mean">忘れないよ</span></div>
-</div>
-<h4>〜(으)ㄹ 거야（〜するつもり・〜だろう）</h4>
-<p>未来の予定・推量を表す</p>
-<div class="hex">
-<div class="hex-row"><span class="kr">할 거야</span> <span class="mean">するつもり</span></div>
-<div class="hex-row"><span class="kr">될 거야</span> <span class="mean">なるはず・大丈夫だよ</span></div>
-<div class="hex-row"><span class="kr">괜찮을 거야</span> <span class="mean">大丈夫だろう</span></div>
-<div class="hex-row"><span class="kr">올 거야</span> <span class="mean">来るはず</span></div>
-</div>
-`}
-];
-function showHelp(){
-  const hs=document.getElementById('helpScreen');
-  hs.style.display='block';
-  // Nav buttons
-  document.getElementById('helpNav').innerHTML=helpSections.map((s,i)=>
-    `<button class="help-nav-btn${i===0?' active':''}" onclick="scrollHelpTo('${s.id}')">${s.title.split(' ').slice(1).join(' ')}</button>`).join('');
-  // Content
-  document.getElementById('helpBody').innerHTML=helpSections.map(s=>
-    `<div class="help-sec" id="help-${s.id}"><h3>${s.title}</h3>${s.content}</div>`).join('');
-  // Scroll spy for nav
-  hs.onscroll=()=>{
-    const tops=helpSections.map(s=>({id:s.id,top:document.getElementById('help-'+s.id)?.getBoundingClientRect().top||999}));
-    let active=tops[0].id;
-    for(const t of tops){if(t.top<150)active=t.id}
-    document.querySelectorAll('.help-nav-btn').forEach((b,i)=>b.classList.toggle('active',helpSections[i].id===active));
-  };
-}
-function scrollHelpTo(id){document.getElementById('help-'+id)?.scrollIntoView({behavior:'smooth',block:'start'})}
-function closeHelp(){document.getElementById('helpScreen').style.display='none'}
-
 // Timing
 function setTimingMode(m){timingMode=m;document.querySelectorAll('.sub-tab').forEach((el,i)=>el.classList.toggle('active',i===(m==='line'?0:1)));renderTimingContent()}
 function renderTimingContent(){const c=document.getElementById('timingContent');if(timingMode==='line')renderLT(c);else renderWT(c)}
@@ -971,6 +657,123 @@ function exportAllData(){
 function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab)t.classList.toggle('active',t.dataset.tab===tab)});document.querySelectorAll('.tab-content').forEach(tc=>tc.style.display='none');document.getElementById('tab-'+tab).style.display='block';if(tab!=='play'){const wrap=document.getElementById('mvVideoWrap');if(wrap&&wrap.classList.contains('open')){wrap.classList.remove('open');const v=wrap.querySelector('video');if(v)v.pause();const toggle=document.querySelector('.mv-toggle');if(toggle)toggle.style.display='';document.getElementById('mvToggleIcon').textContent='▸'}}if(tab==='timing')renderTimingContent();if(tab==='edit')renderEditor();if(tab==='songs'){renderSongList();checkMP3()}window.scrollTo(0,0)}
 function fmt(s,precise){if(s==null)return'0:00';const m=Math.floor(s/60),sc=Math.floor(s%60),cs=Math.floor((s%1)*100);return precise?m+':'+(sc<10?'0':'')+sc+'.'+( cs<10?'0':'')+cs:m+':'+(sc<10?'0':'')+sc}
 function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+
+// === QUIZ ===
+let quizWords=[],quizIdx=0,quizCorrect=0,quizTotal=10,quizAnswered=false;
+
+function buildQuizPool(){
+  // Collect all unique words with meaning across all songs
+  const seen=new Map(); // key: text -> {text,reading,meaning,pos,songTitle}
+  songs.forEach(song=>{
+    song.lines.forEach(line=>{
+      line.words.forEach(w=>{
+        if(!w.meaning||!w.text)return;
+        const key=w.text.trim();
+        if(!seen.has(key)){
+          seen.set(key,{text:w.text,reading:w.reading||'',meaning:w.meaning,pos:w.pos,songTitle:song.title});
+        }
+      });
+    });
+  });
+  return Array.from(seen.values());
+}
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+
+function startQuiz(){
+  const pool=buildQuizPool();
+  if(pool.length<4){alert('単語データが足りないよ！（最低4つの意味付き単語が必要）');return}
+  quizWords=shuffle(pool).slice(0,Math.min(quizTotal,pool.length));
+  quizIdx=0;quizCorrect=0;quizAnswered=false;
+  document.getElementById('homeScreen').style.display='none';
+  document.getElementById('quizScreen').style.display='block';
+  renderQuiz();
+}
+
+function exitQuiz(){
+  document.getElementById('quizScreen').style.display='none';
+  document.getElementById('homeScreen').style.display='block';
+}
+
+function renderQuiz(){
+  if(quizIdx>=quizWords.length){renderQuizResult();return}
+  const q=quizWords[quizIdx];
+  const pool=buildQuizPool().filter(w=>w.meaning!==q.meaning);
+  const wrongChoices=shuffle(pool).slice(0,3).map(w=>w.meaning);
+  const choices=shuffle([q.meaning,...wrongChoices]);
+
+  document.getElementById('quizScore').textContent=`${quizIdx+1}/${quizWords.length}　正解: ${quizCorrect}`;
+
+  const posInfo=POS[q.pos]||POS.noun;
+  document.getElementById('quizContent').innerHTML=`
+    <div class="quiz-question">
+      <div class="quiz-word">${q.text}</div>
+      ${q.reading?`<div class="quiz-reading">${q.reading}</div>`:''}
+      <span class="quiz-pos" style="background:${posInfo.bg};color:${posInfo.c}">${posInfo.l}</span>
+    </div>
+    <div class="quiz-choices" id="quizChoices">
+      ${choices.map((c,i)=>`<button class="quiz-choice" id="qc-${i}" data-val="${esc(c)}" onclick="answerQuiz(${i})">${c}</button>`).join('')}
+    </div>
+    <div class="quiz-from">♪ ${q.songTitle}</div>`;
+  quizAnswered=false;
+}
+
+function answerQuiz(idx){
+  if(quizAnswered)return;
+  quizAnswered=true;
+  const q=quizWords[quizIdx];
+  const correct=q.meaning;
+  const chosen=document.getElementById('qc-'+idx).dataset.val;
+  const isCorrect=(chosen===correct);
+  if(isCorrect)quizCorrect++;
+
+  // Highlight correct/wrong
+  document.querySelectorAll('.quiz-choice').forEach((el,i)=>{
+    const val=el.dataset.val;
+    if(val===correct)el.classList.add('correct');
+    else if(i===idx&&!isCorrect)el.classList.add('wrong');
+    else el.classList.add('reveal');
+    el.style.pointerEvents='none';
+  });
+
+  document.getElementById('quizScore').textContent=`${quizIdx+1}/${quizWords.length}　正解: ${quizCorrect}`;
+
+  // Add next button
+  const cont=document.getElementById('quizContent');
+  const nextLabel=quizIdx>=quizWords.length-1?'結果を見る':'次の問題 →';
+  cont.innerHTML+=`<button class="quiz-next" onclick="quizIdx++;renderQuiz()">${nextLabel}</button>`;
+}
+
+function renderQuizResult(){
+  const pct=Math.round((quizCorrect/quizWords.length)*100);
+  let emoji='🎉',msg='すごい！！';
+  if(pct<30){emoji='😅';msg='もうちょっと！'}
+  else if(pct<60){emoji='👍';msg='いい感じ！'}
+  else if(pct<80){emoji='✨';msg='よくできた！'}
+  else if(pct<100){emoji='🔥';msg='ほぼ完璧！'}
+
+  document.getElementById('quizScore').textContent='';
+  document.getElementById('quizContent').innerHTML=`
+    <div class="quiz-result">
+      <div class="quiz-result-emoji">${emoji}</div>
+      <div class="quiz-result-text">${msg}</div>
+      <div class="quiz-result-sub">${quizWords.length}問中 ${quizCorrect}問正解（${pct}%）</div>
+      <button class="quiz-next" onclick="startQuiz()">🔄 もう一回！</button>
+      <button class="quiz-next" style="background:var(--bg3);color:var(--text);margin-top:8px" onclick="exitQuiz()">← ホームに戻る</button>
+    </div>`;
+}
+
+// Show quiz button once songs are loaded
+const origRenderHome=renderHome;
+renderHome=function(){
+  origRenderHome();
+  const pool=buildQuizPool();
+  document.getElementById('quizStartBtn').style.display=pool.length>=4?'flex':'none';
+};
 
 init();
 </script>
